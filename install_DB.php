@@ -20,8 +20,8 @@ function install_tabelle_db(){
         
         //installo le tabelle
         install_tabella_associato($wpdb, $charset_collate);
-        install_tabella_rinnovo($wpdb, $charset_collate);
-        install_tabella_sezioni_interesse($wpdb, $charset_collate);
+        install_tabella_rinnovo($wpdb, $charset_collate);       
+        install_tabella_indirizzo($wpdb, $charset_collate);
         
         return true;
         
@@ -35,22 +35,15 @@ function install_tabelle_db(){
 function install_tabella_associato($wpdb, $charset_collate){
     $table = $wpdb->prefix.'associati';
     $query = "CREATE TABLE IF NOT EXISTS $table (
-                ID INT NOT NULL auto_increment PRIMARY KEY,
-                numero_tessera INT NOT NULL,
+                ID INT NOT NULL auto_increment PRIMARY KEY, 
                 nome TEXT NOT NULL,
                 cognome TEXT NOT NULL,
                 sesso VARCHAR(1) NOT NULL,
                 luogo_nascita TEXT NOT NULL,
-                data_nascita TIMESTAMP NOT NULL,
-                ind_via TEXT NOT NULL,
-                ind_civico VARCHAR(10) NOT NULL,
-                ind_citta TEXT NOT NULL,
-                ind_prov TEXT NOT NULL,
+                data_nascita TIMESTAMP NOT NULL,               
                 telefono VARCHAR(30),
-                email TEXT NOT NULL,
-                tipo_socio VARCHAR(20) NOT NULL,
-                data_iscrizione TIMESTAMP NOT NULL,
-                modulo TEXT,
+                email TEXT NOT NULL,    
+                data_iscrizione TIMESTAMP,
                 id_utente_wp INT
              );{$charset_collate}";
     try{
@@ -63,12 +56,16 @@ function install_tabella_associato($wpdb, $charset_collate){
     }      
 }
 
-function install_tabella_rinnovo($wpdb, $charset_collate){
-    $table = $wpdb->prefix.'rinnovi';
+function install_tabella_indirizzo($wpdb, $charset_collate){
+    $table = $wpdb->prefix.'indirizzi';
     $query = "CREATE TABLE IF NOT EXISTS $table (
-                ID INT NOT NULL auto_increment PRIMARY KEY,               
-                data_rinnovo TIMESTAMP NOT NULL,                
-                id_associato INT NOT NULL
+                ID INT NOT NULL auto_increment PRIMARY KEY,
+                id_associato INT NOT NULL,
+                indirizzo TEXT NOT NULL,
+                civico VARCHAR(10) NOT NULL,
+                citta TEXT NOT NULL,
+                prov TEXT NOT NULL,
+                FOREIGN KEY (id_associato) REFERENCES qe_associati(ID)
              );{$charset_collate}";
     try{
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -80,12 +77,16 @@ function install_tabella_rinnovo($wpdb, $charset_collate){
     }      
 }
 
-function install_tabella_sezioni_interesse($wpdb, $charset_collate){
-    $table = $wpdb->prefix.'sezioni_interesse';
+function install_tabella_rinnovo($wpdb, $charset_collate){
+    $table = $wpdb->prefix.'iscrizione_rinnovi';
     $query = "CREATE TABLE IF NOT EXISTS $table (
-                ID INT NOT NULL auto_increment PRIMARY KEY,               
-                nome_sezione TEXT NOT NULL,                
-                id_associato INT NOT NULL
+                ID INT NOT NULL auto_increment PRIMARY KEY,  
+                id_associato INT NOT NULL,
+                numero_tessera VARCHAR(10) NOT NULL,
+                data_rinnovo TIMESTAMP,
+                tipo_socio VARCHAR(20) NOT NULL,                
+                modulo TEXT,
+                FOREIGN KEY (id_associato) REFERENCES qe_associati(ID)
              );{$charset_collate}";
     try{
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -102,9 +103,9 @@ function drop_tabelle_associati(){
     global $wpdb;
     $wpdb->prefix = 'qe_';
     try{
-        dropTabellaAssociati($wpdb);
         dropTabellaRinnovi($wpdb);
-        dropTabellaSezioniInteresse($wpdb);
+        dropTabellaIndirizzi($wpdb);
+        dropTabellaAssociati($wpdb);        
     } catch (Exception $ex) {
         _e($ex);        
         return false;
@@ -125,7 +126,7 @@ function dropTabellaAssociati($wpdb){
 
 function dropTabellaRinnovi($wpdb){
     try{
-            $query = "DROP TABLE IF EXISTS ".$wpdb->prefix."rinnovi;";
+            $query = "DROP TABLE IF EXISTS ".$wpdb->prefix."iscrizione_rinnovi;";
             $wpdb->query($query);
             return true;
         }
@@ -135,9 +136,9 @@ function dropTabellaRinnovi($wpdb){
     }
 }
 
-function dropTabellaSezioniInteresse($wpdb){
+function dropTabellaIndirizzi($wpdb){
     try{
-            $query = "DROP TABLE IF EXISTS ".$wpdb->prefix."sezioni_interesse;";
+            $query = "DROP TABLE IF EXISTS ".$wpdb->prefix."indirizzi;";
             $wpdb->query($query);
             return true;
         }
