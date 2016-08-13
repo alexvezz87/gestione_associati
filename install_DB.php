@@ -40,10 +40,9 @@ function install_tabella_associato($wpdb, $charset_collate){
                 cognome TEXT NOT NULL,
                 sesso VARCHAR(1) NOT NULL,
                 luogo_nascita TEXT NOT NULL,
-                data_nascita TIMESTAMP NOT NULL,               
+                data_nascita DATE NOT NULL,               
                 telefono VARCHAR(30),
-                email TEXT NOT NULL,    
-                data_iscrizione TIMESTAMP,
+                email TEXT NOT NULL,
                 id_utente_wp INT
              );{$charset_collate}";
     try{
@@ -61,8 +60,9 @@ function install_tabella_indirizzo($wpdb, $charset_collate){
     $query = "CREATE TABLE IF NOT EXISTS $table (
                 ID INT NOT NULL auto_increment PRIMARY KEY,
                 id_associato INT NOT NULL,
-                indirizzo TEXT NOT NULL,
+                indirizzo TEXT NOT NULL,                
                 civico VARCHAR(10) NOT NULL,
+                cap TEXT NOT NULL,
                 citta TEXT NOT NULL,
                 prov TEXT NOT NULL,
                 FOREIGN KEY (id_associato) REFERENCES qe_associati(ID)
@@ -82,10 +82,12 @@ function install_tabella_rinnovo($wpdb, $charset_collate){
     $query = "CREATE TABLE IF NOT EXISTS $table (
                 ID INT NOT NULL auto_increment PRIMARY KEY,  
                 id_associato INT NOT NULL,
-                numero_tessera VARCHAR(10) NOT NULL,
+                numero_tessera INT NOT NULL,
+                data_iscrizione TIMESTAMP,
                 data_rinnovo TIMESTAMP,
                 tipo_socio VARCHAR(20) NOT NULL,                
                 modulo TEXT,
+                note TEXT,
                 FOREIGN KEY (id_associato) REFERENCES qe_associati(ID)
              );{$charset_collate}";
     try{

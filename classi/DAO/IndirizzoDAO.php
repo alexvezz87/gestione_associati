@@ -31,10 +31,11 @@ class IndirizzoDAO {
                         'cap' => $i->getCap(),
                         'citta' => $i->getCitta(),
                         'prov' => $i->getProv(),    
-                        'id_associato' => $i->getIdUtente()
+                        'id_associato' => $i->getIdAssociato()
                     ),
                     array('%s', '%s', '%s', '%s', '%s', '%d')
                 );
+            
             return $this->wpdb->insert_id;
         } catch (Exception $ex) {
             _e($ex);

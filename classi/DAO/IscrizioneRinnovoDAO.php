@@ -21,17 +21,18 @@ class IscrizioneRinnovoDAO {
      * @param IscrizioneRinnovo $ir
      * @return boolean
      */
-    public function saveIscrizioneRinnovo(IscrizioneRinnovo $ir){
+    public function saveIscrizione(IscrizioneRinnovo $ir){
+        
         try{
             $this->wpdb->insert(
                     $this->table,
                     array(
                         'id_associato' => $ir->getIdAssociato(),
                         'data_iscrizione' => $ir->getDataIscrizione(),
-                        'numero_tessera' => $ir->getNumeroTessera(),
-                        'data_rinnovo' => $ir->getDataRinnovo(),
+                        'numero_tessera' => $ir->getNumeroTessera(),                        
                         'tipo_socio' => $ir->getTipoSocio(),                        
-                        'modulo' => $ir->getModulo()
+                        'modulo' => $ir->getModulo(),
+                        'note' => $ir->getNote()
                     ),
                     array('%d', '%s', '%s', '%s', '%s', '%s')
                 );
@@ -43,29 +44,60 @@ class IscrizioneRinnovoDAO {
     }
     
     /**
-     * La funzione restituisce un oggetto IscrizioneRinnovo dato un id associato
-     * @param type $idAssociato
-     * @return \IscrizioneRinnovo|boolean
+     * La funzione salva un rinnovo
+     * @param IscrizioneRinnovo $ir
+     * @return boolean
      */
+    public function saveRinnovo(IscrizioneRinnovo $ir){
+        try{
+            $this->wpdb->insert(
+                    $this->table,
+                    array(
+                        'id_associato' => $ir->getIdAssociato(),
+                        'data_rinnovo' => $ir->getDataIscrizione(),
+                        'numero_tessera' => $ir->getNumeroTessera(),                        
+                        'tipo_socio' => $ir->getTipoSocio(),                        
+                        'modulo' => $ir->getModulo(),
+                        'note' => $ir->getNote()
+                    ),
+                    array('%d', '%s', '%s', '%s', '%s', '%s')
+                );
+            return $this->wpdb->insert_id;
+        } catch (Exception $ex) {
+            _e($ex);
+            return false;
+        }
+    }
+    
+   /**
+    * La funzione restituisce un array di oggetti IscrizioneRinnovo dato un id associato
+    * @param type $idAssociato
+    * @return array
+    */
     public function getIScrizioneRinnovo($idAssociato){
         try{
             $query = "SELECT * FROM ".$this->table." WHERE id_associato = ".$idAssociato;
-            $temp = $this->wpdb->get_row($query);
-            if($temp != null){
-                $ir = new IscrizioneRinnovo();
-                $ir->setID($temp->ID);
-                $ir->setIdAssociato($temp->id_associato);
-                $ir->setDataIscrizione($temp->data_iscrizione);
-                $ir->setNumeroTessera($temp->numero_tessera);
-                $ir->setDataRinnovo($temp->data_rinnovo);
-                $ir->setModulo($temp->modulo);
-                
-                return $ir;
+            $temp = $this->wpdb->get_results($query);
+            if(count($temp) > 0){
+                $irs = array();
+                foreach($temp as $item){
+                    $ir = new IscrizioneRinnovo();
+                    $ir->setID($item->ID);
+                    $ir->setIdAssociato($item->id_associato);                    
+                    isset($item->data_iscrizione) ? $ir->setDataIscrizione($item->data_iscrizione) : $ir->setDataIscrizione(null);                                       
+                    $ir->setNumeroTessera($item->numero_tessera);
+                    isset($item->data_rinnovo) ?  $ir->setDataRinnovo($item->data_rinnovo) :  $ir->setDataRinnovo(null);                   
+                    $ir->setModulo($$item->modulo);
+                    $ir->setNote($item->note);
+                    
+                    array_push($irs, $ir);
+                }
+                return $irs;
             }            
             return null;
         } catch (Exception $ex) {
             _e($ex);
-            return false;
+            return null;
         }
     }
     
@@ -97,16 +129,38 @@ class IscrizioneRinnovoDAO {
                         'data_iscrizione' => $ir->getDataIscrizione(),
                         'data_rinnovo' => $ir->getDataRinnovo(),
                         'tipo_socio' => $ir->getTipoSocio(),
-                        'modulo' => $ir->getModulo()
+                        'modulo' => $ir->getModulo(),
+                        'note' => $ir->getNote()
                     ),
                     array('ID' => $ir->getID()),
-                    array('%s', '$%s', '%s', '%s', '%s'),
+                    array('%s', '$%s', '%s', '%s', '%s', '%s'),
                     array('%d')
                 );
             return true;
         } catch (Exception $ex) {
             _e($ex);
             return false;
+        }
+    }
+    
+    
+    /**
+     * La funzione restituisce il numero più alto 
+     * @return int
+     */
+    public function getUltimaTessera(){
+        try{
+            $query = "SELECT MAX(numero_tessera) FROM ".$this->table;
+            $result = $this->wpdb->get_var($query);
+            
+            if($result == null){
+                $result = 0;
+            }           
+            
+            return intval($result);
+            
+        } catch (Exception $ex) {
+
         }
     }
 

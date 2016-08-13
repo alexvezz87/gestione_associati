@@ -22,7 +22,7 @@ class AssociatoDAO {
      * @return boolean
      */
     public function saveAssociato(Associato $a){
-        try{
+        try{           
             $this->wpdb->insert(
                     $this->table,
                     array(
@@ -31,7 +31,7 @@ class AssociatoDAO {
                         'cognome' => $a->getCognome(),
                         'sesso' => $a->getSesso(),
                         'luogo_nascita' => $a->getLuogoNascita(),
-                        'data_nascita' => $a->getDataNascita(),
+                        'data_nascita' =>  $a->getDataNascita(),
                         'telefono' => $a->getTelefono(),
                         'email' => $a->getEmail()
                     ),
@@ -44,11 +44,11 @@ class AssociatoDAO {
         }
     }
     
-    /**
-     * La funzione restituisce un associato passando il suo ID
-     * @param type $ID
-     * @return \Associato|boolean
-     */
+   /**
+    * La funzione restituisce un associato passando il suo ID
+    * @param type $ID
+    * @return \Associato
+    */
     public function getAssociato($ID){
         try{
             $query = "SELECT * FROM ".$this->table." WHERE ID = ".$ID;
@@ -67,7 +67,7 @@ class AssociatoDAO {
                 
                 return $a;
             }
-            return false;
+            return null;
             
         } catch (Exception $ex) {
             _e($ex);
@@ -127,6 +127,10 @@ class AssociatoDAO {
      */
     public function updateAssociato(Associato $a){
         try{
+            //Imposto il timezone
+            date_default_timezone_set('Europe/Rome');
+            $timestamp = $a->getDataNascita().' 00:00:00';           
+            
             $this->wpdb->update(
                     $this->table,
                     array(
@@ -134,7 +138,7 @@ class AssociatoDAO {
                         'cognome' => $a->getCognome(),
                         'sesso' => $a->getSesso(),
                         'luogo_nascita' => $a->getLuogoNascita(),
-                        'data_nascita' => $a->getDataNascita(),
+                        'data_nascita' => $timestamp,
                         'telefono' => $a->getTelefono(),
                         'email' => $a->getEmail(),
                         'id_utente_wp' => $a->getIdUtenteWP()
@@ -150,6 +154,19 @@ class AssociatoDAO {
             return false;
         }
     }
-
+    
+    /**
+     * La funzione restituisce un array di id_utente_wp
+     * @return type
+     */
+    public function getUtentiWpAssegnati(){
+        try{
+            $query = "SELECT id_utente_wp FROM ".$this->table;
+            return $this->wpdb->get_col($query);
+        } catch (Exception $ex) {
+            _e($ex);
+            return null;
+        }
+    }
     
 }

@@ -13,9 +13,10 @@ class IscrizioneRinnovo {
     private $idAssociato;
     private $numeroTessera;
     private $dataRinnovo;
-    private $tipoSocio;
+    private $tipoSocio; //0 --> Sostenitore, 1 --> Ordinario, 2 --> VIP
     private $dataIscrizione;
     private $modulo;
+    private $note;
     
     function __construct() {
         
@@ -76,6 +77,15 @@ class IscrizioneRinnovo {
     function setModulo($modulo) {
         $this->modulo = $modulo;
     }
+
+    function getNote() {
+        return $this->note;
+    }
+
+    function setNote($note) {
+        $this->note = $note;
+    }
+
 
 
 
