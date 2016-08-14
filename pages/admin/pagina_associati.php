@@ -2,6 +2,11 @@
 
 //Autore: Alex Vezzelli - Alex Soluzioni Web
 //url: http://www.alexsoluzioniweb.it/
+
+$view = new AssociatoView();
+
 ?>
 
-pagina associati
+<h3>Visualizza Associati</h3>
+
+<?php $view->printTableAssociati() ?>

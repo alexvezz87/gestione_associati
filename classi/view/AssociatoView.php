@@ -6,6 +6,7 @@
  */
 class AssociatoView extends PrinterView {
     private $province;
+    private $tipoSocio;
     private $controller;
     private $form, $label;
     
@@ -182,6 +183,7 @@ class AssociatoView extends PrinterView {
         );
         
         $this->controller = new AssociatoController();
+        $this->tipoSocio = array('1' => 'Sostenitore', '2' => 'Ordinario', '3' => 'VIP', '4' => 'Onorario');
     }
     
     
@@ -198,6 +200,22 @@ class AssociatoView extends PrinterView {
         parent::printSelectFormField($this->form['prov'], $this->label['prov'], $this->province, true);  
     }
     
+    
+    public function printDettaglioIndirizzo($array){
+        foreach($array as $item){
+            $i = new Indirizzo();
+            $i = $item;
+            echo '<h4>Indirizzo</h4>';
+            parent::printHiddenFormField('associato-id', $i->getIdAssociato());
+            parent::printTextFormField($this->form['indirizzo'], $this->label['indirizzo'], true, $i->getIndirizzo());
+            parent::printTextFormField($this->form['civico'], $this->label['civico'], true, $i->getCivico());
+            parent::printTextFormField($this->form['cap'], $this->label['cap'], true, $i->getCap());
+            parent::printTextFormField($this->form['citta'], $this->label['citta'], true, $i->getCitta());
+            parent::printSelectFormField($this->form['prov'], $this->label['prov'], $this->province, true, $i->getProv());  
+        }
+        
+    }
+    
     /**
      * Funzione che stampa i campi dettaglio di inserimento di un'iscrizione
      */
@@ -205,10 +223,91 @@ class AssociatoView extends PrinterView {
         echo '<h4>Iscrizione</h4>';
         parent::printNumberFormField($this->form['numTessera'], $this->label['numTessera'], true, $this->controller->suggerisciProssimaTessera());
         parent::printDateFormField($this->form['dataIscrizione'], $this->label['dataIscrizione'], true);
-        $tipoSocio = array('1' => 'Sostenitore', '2' => 'Ordinario', '3' => 'VIP');
-        parent::printSelectFormField($this->form['tipoSocio'], $this->label['tipoSocio'], $tipoSocio, true);
+        
+        parent::printSelectFormField($this->form['tipoSocio'], $this->label['tipoSocio'], $this->tipoSocio, true);
         parent::printInputFileFormField($this->form['modulo'], $this->label['modulo'], true);
         parent::printTextAreaFormField($this->form['note'], $this->label['note']);
+    }
+    
+    
+    public function printRinnovo($array){
+        //devo trovare il numero tessera
+        $tessera = "";
+        $tipoSocio = "";
+        $idAssociato = "";
+        foreach($array as $item){
+            $ir = new IscrizioneRinnovo();
+            $ir = $item;
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                //uso il numero tessera dell'iscrizione
+                $tessera = $ir->getNumeroTessera();
+                $tipoSocio = $ir->getTipoSocio();
+                $idAssociato = $ir->getIdAssociato();
+            }
+        }
+        
+        
+        echo '<h4>Nuovo Rinnovo</h4>';
+        parent::printHiddenFormField('associato-id', $idAssociato);
+        parent::printNumberFormField($this->form['numTessera'], $this->label['numTessera'], true, $tessera);
+        parent::printDateFormField($this->form['dataRinnovo'], $this->label['dataRinnovo'], true);
+        
+        parent::printSelectFormField($this->form['tipoSocio'], $this->label['tipoSocio'], $this->tipoSocio, true, $tipoSocio);
+        parent::printInputFileFormField($this->form['modulo'], $this->label['modulo'], true);
+        parent::printTextAreaFormField($this->form['note'], $this->label['note']);
+    }
+    
+    public function printDettaglioIscrizione($array){
+        
+        $countRinnovo = 0;
+        foreach($array as $item){
+            echo '<hr>';
+            echo '<form class="form-horizontal" role="form" action="'.curPageURL().'" name="form-associato-iscrizione-rinnovo" method="POST" >';
+            
+            $ir = new IscrizioneRinnovo();
+            $ir = $item;
+            
+            //campo id-associato
+            parent::printHiddenFormField('ir-id', $ir->getID());
+            
+            $testoModulo = "";
+            $anno = "";
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                echo '<h4>Iscrizione</h4>';
+                $data = explode('-', $ir->getDataIscrizione());
+                $anno = $data[0];
+                $testoModulo = "Documento: Iscrizione ".$anno;
+                        
+            }
+            else{ 
+                $countRinnovo++;
+                echo '<h4>Rinnovo '.$countRinnovo.'</h4>';
+                $data = explode('-', $ir->getDataRinnovo());
+                $anno = $data[0];
+                $testoModulo = "Documento: Rinnovo ".$anno;
+            }
+            parent::printNumberFormField($this->form['numTessera'], $this->label['numTessera'], true, $ir->getNumeroTessera());
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                parent::printDateFormField($this->form['dataIscrizione'], $this->label['dataIscrizione'], true, $ir->getDataIscrizione());
+            }
+            else{                
+                parent::printDateFormField($this->form['dataRinnovo'], $this->label['dataRinnovo'], true, $ir->getDataRinnovo());
+            } 
+            
+            parent::printSelectFormField($this->form['tipoSocio'], $this->label['tipoSocio'], $this->tipoSocio, true, $ir->getTipoSocio());
+            parent::printImageLinkDocument($this->form['modulo'], $this->label['modulo'], false, $ir->getModulo(), $testoModulo);
+            parent::printTextAreaFormField($this->form['note'], $this->label['note'], false, $ir->getNote());
+            
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                parent::printUpdateDettaglio('associato-iscrizione'); 
+            }
+            else{                
+                parent::printUpdateDettaglio('associato-rinnovo'); 
+            } 
+            
+            
+            echo '</form>';
+        }
     }
     
     /**
@@ -250,6 +349,68 @@ class AssociatoView extends PrinterView {
     }
     
     
+    public function printDettaglioAssociato($idAssociato){
+        $a = new Associato();
+        $a = $this->controller->getAssociatoByIdAssociato($idAssociato);
+        
+        if($a != null){
+    ?>
+        <h3>Associato: <?php echo $a->getCognome().' '.$a->getNome() ?></h3>
+        <div class="col-sm-6">
+            <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-dettagli" method="POST" >
+                <?php parent::printHiddenFormField('associato-id', $a->getID()); ?>
+                <?php parent::printTextFormField($this->form['nome'], $this->label['nome'], true, $a->getNome()) ?>
+                <?php parent::printTextFormField($this->form['cognome'], $this->label['cognome'], true, $a->getCognome()) ?>
+                <?php
+                    $sesso = array('m' => 'Maschio', 'f' => 'Femmina');
+                    parent::printRadioFormField($this->form['sesso'], $this->label['sesso'], $sesso, true, $a->getSesso());                    
+                ?>
+                <?php parent::printTextFormField($this->form['luogoNascita'], $this->label['luogoNascita'], true, $a->getLuogoNascita()) ?>
+                <?php parent::printDateBirthdayFormField($this->form['dataNascita'], $this->label['dataNascita'], true, $a->getDataNascita()) ?>
+                <?php parent::printTextFormField($this->form['telefono'], $this->label['telefono'], false, $a->getTelefono()) ?>
+                <?php parent::printEmailFormField($this->form['email'], $this->label['email'], false, $a->getEmail()) ?>
+                <?php  
+                    $utentiWp = getUtentiWpSelectValues();                   
+                    parent::printSelectFormField($this->form['utenteWP'], $this->label['utenteWP'], $utentiWp, false, $a->getIdUtenteWP());
+                ?>
+                <div>
+                    <?php parent::printUpdateDettaglio('associato') ?>
+                </div>
+            </form>
+            <hr>
+            <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-indirizzo" method="POST" >    
+                <?php $this->printDettaglioIndirizzo($a->getIndirizzo()); ?>
+                <div>
+                    <?php parent::printUpdateDettaglio('associato-indirizzo') ?>
+                </div>
+            </form>
+             <?php $this->printDettaglioIscrizione($a->getIscrizioneRinnovo()) ?>
+            <div class="clear"></div>
+            <hr>
+            <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-elimina" method="POST" >
+                <?php parent::printHiddenFormField('associato-id', $a->getID()) ?>
+                <?php parent::printDeleteDettaglio('associato') ?>
+            </form>
+            
+        </div>
+        <div class="col-sm-6">
+            <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-rinnovo" method="POST" enctype="multipart/form-data" >
+                <?php parent::printHiddenFormField('associato-id', $a->getID()) ?>
+                <?php $this->printRinnovo($a->getIscrizioneRinnovo()) ?>
+                <input class="btn btn-success" style="float:right" type="submit" name="rinnova-associato" value="Rinnova" />
+            </form>
+        </div>
+    <?php
+        }
+        else{
+            echo '<p>Associato non trovato :( </p>';
+        }
+    }
+    
+    /**
+     * Listener del form di aggiunta associato
+     * @return type
+     */
     public function listenerAddAssociato(){
         
         if(isset($_POST[$this->form['submit']])){
@@ -300,6 +461,136 @@ class AssociatoView extends PrinterView {
             
             
         }
+    }
+    
+    
+    public function listenerDettaglioAssociato(){
+        //Questo listener contiene 4 tipi di listeners (3 di update e 1 di delete)
+        
+        //1. update dettagli associato
+        if(isset($_POST['update-associato'])){     
+            
+            $associato = $this->checkAssociatoFields();
+            //print_r($associato);
+            if($associato == null){
+                //se ci sono stati errori concludo l'operazione  
+                parent::printErrorBoxMessage('Associato non aggiornato!');
+                return;
+            }
+            $associato->setID($_POST['associato-id']);
+            
+            if($this->controller->updateAssociatoDettagli($associato) == false){
+                parent::printErrorBoxMessage('Associato non aggiornato!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Associato aggiornato con successo!');
+                unset($_POST);
+                return;
+            }
+        }
+        
+        //2. update indirizzo
+        if(isset($_POST['update-associato-indirizzo'])){
+            $indirizzo = $this->checkIndirizzoFields();            
+            if($indirizzo == null){
+                //se ci sono stati errori concludo l'operazione
+                parent::printErrorBoxMessage('Indirizzo Associato non aggiornato!');
+                return;
+            }
+            $indirizzo->setIdAssociato($_POST['associato-id']);
+            
+            if($this->controller->updateAssociatoIndirizzo($indirizzo) == false){
+                parent::printErrorBoxMessage('Indirizzo Associato non aggiornato!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Indirizzo Associato aggiornato con successo!');
+                unset($_POST);
+                return;
+            }
+        }
+        
+        //3a. update iscrizione
+        if(isset($_POST['update-associato-iscrizione'])){
+            $iscrizione = $this->checkIscrizioneRinnovoFields(0, null);
+            if($iscrizione == null){
+                //se ci sono stati errori concludo l'operazione
+                parent::printErrorBoxMessage('Iscrizione Associato non aggiornata!');
+                return;
+            }           
+            $iscrizione->setID($_POST['ir-id']);
+            if($this->controller->updateAssociatoIscrizioneRinnovo($iscrizione) == false){
+                parent::printErrorBoxMessage('Iscrizione Associato non aggiornata!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Iscrizione Associato aggiornata con successo!');
+                unset($_POST);
+                return;
+            }
+            
+        }
+        
+        //3b. update rinnovo
+        if(isset($_POST['update-associato-rinnovo'])){
+            $rinnovo = $this->checkIscrizioneRinnovoFields(1, null);
+            if($rinnovo == null){
+                //se ci sono stati errori concludo l'operazione
+                parent::printErrorBoxMessage('Rinnovo Associato non aggiornato!');
+                return;
+            }
+            $rinnovo->setID($_POST['ir-id']);
+           
+            if($this->controller->updateAssociatoIscrizioneRinnovo($rinnovo) == false){
+                parent::printErrorBoxMessage('Rinnovo Associato non aggiornato!');               
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Rinnovo Associato aggiornato con successo!');
+                unset($_POST);
+                return;
+            }
+            
+        }
+        
+        //4. delete associato
+        if(isset($_POST['delete-associato'])){
+            
+        }        
+        
+        //5. salva nuovo rinnovo
+        if(isset($_POST['rinnova-associato'])){
+            
+            //In primis, salvo il file con wordpress
+            $upload = wp_upload_bits($_FILES[$this->form['modulo']]["name"], null, file_get_contents($_FILES[$this->form['modulo']]["tmp_name"]));
+            
+            if($upload['error'] != false){
+               parent::printErrorBoxMessage($upload['error']);              
+               return;
+            }            
+            $rinnovo = $this->checkIscrizioneRinnovoFields(1, $upload);
+            if($rinnovo == null){
+                //se ci sono stati errori concludo l'operazione
+                parent::printErrorBoxMessage('Errore nel salvare il nuovo rinnovo.');
+                return;
+            }
+            $rinnovo->setIdAssociato($_POST['associato-id']);
+            if($this->controller->saveRinnovo($rinnovo) == false){
+                parent::printErrorBoxMessage('Errore nel salvare il nuovo rinnovo.');
+                return;
+            }
+            else{
+                parent::printOkBoxMessage('Nuovo Rinnovo salvato con successo!');
+                unset($_POST);
+                return;
+            }
+        }
+        
     }
     
     /**
@@ -392,6 +683,7 @@ class AssociatoView extends PrinterView {
         return $a;
         
     }
+          
     
     /**
      * La funzione controlla i campi indirizzo e restituisce un oggetto indirizzo, null in caso di errori
@@ -516,7 +808,9 @@ class AssociatoView extends PrinterView {
         
         //modulo - CAMPO OBBLIGATORIO
         //se sono qui vuol dire che il modulo è stato caricato
-        $ir->setModulo($upload['url']);
+        if($upload != null){
+            $ir->setModulo($upload['url']);
+        }
         
         //note
         if(isset($_POST[$this->form['note']]) && trim($_POST[$this->form['note']]) != ''){
@@ -530,6 +824,127 @@ class AssociatoView extends PrinterView {
         return $ir;        
         
     }
+    
+    
+    public function printTableAssociati(){
+        $associati = $this->controller->getAssociatiList();
+      
+        
+        $header = array(
+            $this->label['numTessera'],
+            $this->label['cognome'],
+            $this->label['nome'],
+            $this->label['tipoSocio'],
+            $this->label['dataIscrizione'],
+            'Ultimo Rinnovo',
+            'Stato',
+            'Azioni'    
+        );
+        
+        $bodyTable = $this->printBodyTable($associati);
+        
+        parent::printTableHover($header, $bodyTable);
+       
+    }
+    
+    
+    protected function printBodyTable($array){
+        parent::printBodyTable($array);
+        
+        
+        
+        $html = "";
+        foreach($array as $item){
+            $a = new Associato();
+            $a = $item;
+            
+            $ir = new IscrizioneRinnovo();
+            
+            $array = $a->getIscrizioneRinnovo();
+            $ultimaData = "";
+            $countRinnovi = 0;
+            $numTessera = "";
+            $tipoSocio = "";
+            $ultimoRinnovo = "nessuno";
+            foreach($array as $item2){
+                $temp = new IscrizioneRinnovo();
+                $temp = $item2;
+                if($temp->getDataIscrizione() != '0000-00-00 00:00:00'){
+                    $ir = $temp;
+                    $ultimaData = $temp->getDataIscrizione();
+                    $numTessera = $temp->getNumeroTessera();
+                    $tipoSocio = $temp->getTipoSocio();
+                }
+                else{
+                    $countRinnovi++;
+                    $ultimaData = $temp->getDataRinnovo();
+                    $tipoSocio = $temp->getTipoSocio();
+                    $ultimoRinnovo = getStringData($temp->getDataRinnovo());
+                }
+            }
+           
+            
+            $html.="<tr>";
+            //numTessera
+            $html.='<td>'.parent::printTextField(null, $numTessera).'</td>';
+            //cognome
+            $html.='<td>'.parent::printTextField(null, $a->getCognome()).'</td>';
+            //nome
+            $html.='<td>'.parent::printTextField(null, $a->getNome()).'</td>';
+            //tipo socio
+            $socio = "";
+            if($tipoSocio == '1'){
+                $socio = 'Sostenitore';
+            }
+            else if($tipoSocio == '2'){
+                $socio = 'Ordinario';
+            }
+            else if($tipoSocio == '3'){
+                $socio = 'VIP';
+            }
+            else if($tipoSocio == '4'){
+                $socio = 'Onorario';
+            }
+            
+            $html.='<td>'.parent::printTextField(null, $socio).'</td>';
+            //data iscrizione
+            $html.='<td>'.parent::printTextField(null, getStringData($ir->getDataIscrizione())).'</td>';
+            //stato
+            $rinnovo = "";
+            if($countRinnovi == 0){
+                $rinnovo = "nessuno";
+            }
+            else if($countRinnovi == 1){
+                $rinnovo = "1 rinnovo";
+            }
+            else{
+                $rinnovo = $countRinnovi." rinnovi";
+            }
+            
+            $html.='<td>'.parent::printTextField(null, $ultimoRinnovo).'</td>';
+            
+            $scaduto = "";
+            if(isAssociatoScaduto($ultimaData)){
+                $scaduto = '<strong style="color:red">SCADUTO</span>';
+            }
+            else{
+                $scaduto = '<strong style="color:green">ATTIVO</span>';
+            }
+            
+            
+            $html.='<td>'.parent::printTextField(null, $scaduto ).'</td>';
+            //azioni
+            $html.='<td><a href="'.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'">Visualizza dettagli</a></td>';
+            $html.="</tr>"; 
+        }
+        
+        return $html;
+        
+    }
+    
+    
+    
+    
     
     
 }

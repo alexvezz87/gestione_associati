@@ -86,6 +86,8 @@ add_action( 'admin_enqueue_scripts', 'register_admin_js_script' );
 function add_admin_ga_menu(){
     add_menu_page('Associati', 'Associati', 'edit_plugins', 'gestione_associati', 'add_page_gestione_associati', plugins_url('images/ico_plugin.png', __FILE__), 9 );
     add_submenu_page('gestione_associati', 'Aggiungi Associato', 'Aggiungi Associato', 'edit_plugins', 'add_associato', 'add_page_add_associato');
+    
+    add_submenu_page('', 'Dettaglio Associato',  'Dettaglio Associato', 'edit_plugins', 'dettaglio_associato', 'add_pagina_dettaglio');
 }
 
 
@@ -95,6 +97,10 @@ function add_page_gestione_associati(){
 
 function add_page_add_associato(){
     include 'pages/admin/add_associato.php';
+}
+
+function add_pagina_dettaglio(){
+    include 'pages/admin/dettaglio_associato.php';
 }
 
 

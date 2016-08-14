@@ -152,6 +152,37 @@ class PrinterView {
     }
     
     /**
+     * La funzione stampa il link al documento di iscrizione/rinnovo
+     * @param type $nameField
+     * @param type $label
+     * @param type $required
+     * @param type $value
+     */
+    protected function printImageLinkDocument($nameField, $label, $required=false, $value=null, $testoModulo){
+        global $URL_IMG;
+        $optRequired = "";
+        if($required == true){
+            $optRequired = "required";
+        }
+        if($value==null){
+            if(isset($_POST[$nameField])){
+                $value = $_POST[$nameField];
+            }
+        }
+    ?>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="<?php echo $nameField ?>" ><?php echo $label ?></label>
+            <div class="col-sm-10">            
+                <a title="<?php echo $testoModulo ?>" href="<?php echo $value ?>" target="_blank">
+                    <img title="<?php echo $testoModulo ?>" class="modulo-iscrizione" alt="iscrizione-rinnovo" src="<?php echo $URL_IMG ?>/ico_document.png" /> 
+                    <span style="padding-left:10px;"><?php echo $testoModulo ?></span>
+                </a>
+            </div>
+        </div>
+    <?php      
+    }
+    
+    /**
      * Funzione che stampa secondo i canoni di bootstrap una input file upload
      * @param type $nameField
      * @param type $label
@@ -279,15 +310,17 @@ class PrinterView {
         if($value == null){
             if(isset($_POST[$nameField])){
                 $value = $_POST[$nameField];
-                //spacco il valore
-                $temp = explode('-', $value);
-                if(count($temp) > 0){
-                    $date['d'] = intval($temp[2]);
-                    $date['m'] = $temp[1];
-                    $date['y'] = intval($temp[0]);
-                }
             }
-        }       
+        }
+        if($value != null){
+            //spacco il valore
+            $temp = explode('-', $value);
+            if(count($temp) > 0){
+                $date['d'] = intval($temp[2]);
+                $date['m'] = $temp[1];
+                $date['y'] = intval($temp[0]);
+            }
+        }
     ?>
         <div class="form-group">
             <label class="control-label col-sm-2" for="<?php echo $nameField ?>" ><?php echo $label ?></label>
@@ -353,13 +386,15 @@ class PrinterView {
         if($value == null){
             if(isset($_POST[$nameField])){
                 $value = $_POST[$nameField];
-                //spacco il valore
-                $temp = explode('-', $value);
-                if(count($temp) > 0){
-                    $date['d'] = intval($temp[2]);
-                    $date['m'] = $temp[1];
-                    $date['y'] = intval($temp[0]);
-                }
+            }
+        }
+        if($value != null){
+            //spacco il valore
+            $temp = explode('-', $value);
+            if(count($temp) > 0){
+                $date['d'] = intval($temp[2]);
+                $date['m'] = $temp[1];
+                $date['y'] = intval($temp[0]);
             }
         }
         
@@ -456,6 +491,18 @@ class PrinterView {
         <input name="update-<?php echo $nameField ?>" type="submit" class="btn btn-primary" value="Aggiorna" />
         <input name="delete-<?php echo $nameField ?>" type="submit" class="btn btn-danger" value="Cancella" />
     <?php
+    }
+    
+    protected function printDeleteDettaglio($nameField){
+    ?>        
+        <input name="delete-<?php echo $nameField ?>" type="submit" class="btn btn-danger" value="Cancella Associato" />
+    <?php    
+    }
+    
+    protected function printUpdateDettaglio($nameField){
+    ?>
+        <input name="update-<?php echo $nameField ?>" type="submit" class="btn btn-primary" value="Aggiorna" />
+    <?php    
     }
     
     /**

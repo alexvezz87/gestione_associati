@@ -4,6 +4,10 @@
 //url: http://www.alexsoluzioniweb.it/
 
 
+global $URL_IMG;
+
+$URL_IMG = plugins_url('images/', __FILE__);
+
 //VARIABILI GLOBALI ASSOCIATO
 global $FORM_NOME, $FORM_COGNOME, $FORM_SESSO, $FORM_LUOGO_NASCITA, $FORM_DATA_NASCITA, $FORM_TELEFONO, $FORM_EMAIL, $FORM_UTENTE_WP;
 global $LABEL_NOME, $LABEL_COGNOME, $LABEL_SESSO, $LABEL_LUOGO_NASCITA, $LABEL_DATA_NASCITA, $LABEL_TELEFONO, $LABEL_EMAIL, $LABEL_UTENTE_WP;
@@ -55,7 +59,7 @@ $LABEL_DATA_RINNOVO = 'Data rinnovo';
 $FORM_TIPO_SOCIO = 'associato-tipo';
 $LABEL_TIPO_SOCIO = 'Tipo Socio';
 $FORM_MODULO = 'associato-modulo';
-$LABEL_MODULO = 'Modulo iscrizione/rinnovo';
+$LABEL_MODULO = 'Modulo';
 $FORM_NOTE = 'associato-note';
 $LABEL_NOTE = 'Note';
 

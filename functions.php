@@ -29,4 +29,64 @@ function getTime($time){
 }
 
 
+function getStringData($time){
+    $temp = explode(' ', $time);
+    $time1 = explode('-', $temp[0]);
+    return $time1[2].' '.getMese($time1[1]).' '.$time1[0];
+}
+
+function getMese($mese){
+    
+    switch ($mese){
+        case '01': return 'Gennaio';
+        case '02': return 'Febbraio';
+        case '03': return 'Marzo';
+        case '04': return 'Aprile';
+        case '05': return 'Maggio';
+        case '06': return 'Giugno';
+        case '07': return 'Luglio';
+        case '08': return 'Agosto';
+        case '09': return 'Settembre';
+        case '10': return 'Ottobre';
+        case '11': return 'Novembre';
+        case '12': return 'Dicembre';
+    }
+    
+   
+}
+
+/**
+ * La funzione indica se un utente è scaduto. Il periodo è di 365 giorni
+ * @param type $data
+ * @return boolean
+ */
+function isAssociatoScaduto($data){
+    //calcolo il tempo 
+    $oggi = time();
+    //Giorni da sottrarre
+    $giorni = 365*24*60*60;
+    $datascadenza = strtotime($data) + $giorni;   
+    if($datascadenza > $oggi){
+        return false;
+    }
+    return true;
+}
+
+
+function getUtentiWpSelectValues(){
+    
+    $args = array('fields' => 'all', 'orderby' => 'display_name', 'order' => 'ASC');        
+    $usersWp = get_users($args);
+    
+    $result = array();
+    foreach($usersWp as $user){
+        $u = new WP_User();
+        $u = $user;
+        $result[$u->ID] = $u->user_firstname.' '.$u->user_lastname;
+    }
+    
+    return $result;
+}
+
+
 ?>

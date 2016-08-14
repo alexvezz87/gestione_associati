@@ -54,6 +54,18 @@ class AssociatoController {
     }
     
     /**
+     * La funzione salva un rinnovo nel database
+     * @param IscrizioneRinnovo $ir
+     * @return boolean
+     */
+    public function saveRinnovo(IscrizioneRinnovo $ir){
+        if($this->irDAO->saveRinnovo($ir) == false){
+            return false;
+        }
+        return true;
+    }
+    
+    /**
      * La funzione restituisce un oggetto Associato conoscendo l'ID associato
      * @param type $idAssociato
      * @return type
@@ -87,7 +99,9 @@ class AssociatoController {
      */
     public function getAssociatiList(){
         //ottengo un array di ID di associati
-        $ids = $this->aDAO->getAssociati();
+        $ids = $this->irDAO->getIdAssociati();
+        
+        
         $associati = array();
         if(count($ids) > 0){
             foreach($ids as $id){
@@ -121,6 +135,51 @@ class AssociatoController {
         }
         
         return true;        
+    }
+    
+    /**
+     * La funzione aggiorna solo i campi dettaglio associato
+     * @param Associato $a
+     * @return boolean
+     */
+    public function updateAssociatoDettagli(Associato $a){
+        if($this->aDAO->updateAssociato($a) == false){
+            return false;
+        }   
+        return true;
+    }
+    
+    /**
+     * La funzione aggiorna solo i campi indirizzo associato
+     * @param Indirizzo $i
+     * @return boolean
+     */
+    public function updateAssociatoIndirizzo(Indirizzo $i){
+        if($this->iDAO->updateIndirizzo($i) == false){
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * La funzione aggiorna solo i campi iscrizione rinnovo di un associato
+     * @param IscrizioneRinnovo $ir
+     * @return boolean
+     */
+    public function updateAssociatoIscrizioneRinnovo(IscrizioneRinnovo $ir){
+        if($ir->getDataRinnovo() == null){
+            
+            if($this->irDAO->updateIscrizione($ir) == false){
+                return false;
+            } 
+        }
+        else if($ir->getDataIscrizione() == null){
+            
+            if($this->irDAO->updateRinnovo($ir) == false){
+                return false;
+            }
+        }        
+        return true;
     }
     
     /**

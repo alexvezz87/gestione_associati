@@ -125,7 +125,7 @@ class AssociatoDAO {
      * @param Associato $a
      * @return boolean
      */
-    public function updateAssociato(Associato $a){
+    public function updateAssociato(Associato $a){        
         try{
             //Imposto il timezone
             date_default_timezone_set('Europe/Rome');

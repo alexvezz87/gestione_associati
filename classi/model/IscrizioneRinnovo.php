@@ -43,6 +43,7 @@ class IscrizioneRinnovo {
     }
 
     function getDataIscrizione() {
+        
         return $this->dataIscrizione;
     }
 
