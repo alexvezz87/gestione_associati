@@ -56,10 +56,10 @@ class AssociatoDAO {
             if($temp != null){
                 $a = new Associato();
                 $a->setID($temp->ID);
-                $a->setNome($temp->nome);
-                $a->setCognome($temp->cognome);
+                $a->setNome(stripslashes($temp->nome));
+                $a->setCognome(stripslashes($temp->cognome));
                 $a->setSesso($temp->sesso);
-                $a->setLuogoNascita($temp->luogo_nascita);
+                $a->setLuogoNascita(stripslashes($temp->luogo_nascita));
                 $a->setDataNascita($temp->data_nascita);
                 $a->setTelefono($temp->telefono);
                 $a->setEmail($temp->email);

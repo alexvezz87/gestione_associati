@@ -73,11 +73,11 @@ class IndirizzoDAO {
                 foreach($temp as $t){
                     $i = new Indirizzo();
                     $i->setCap($t->cap);
-                    $i->setCitta($t->citta);
+                    $i->setCitta(stripslashes($t->citta));
                     $i->setCivico($t->civico);
                     $i->setID($t->ID);
                     $i->setIdAssociato($t->id_associato);
-                    $i->setIndirizzo($t->indirizzo);
+                    $i->setIndirizzo(stripslashes($t->indirizzo));
                     $i->setProv($t->prov);
                     
                     array_push($result, $i);

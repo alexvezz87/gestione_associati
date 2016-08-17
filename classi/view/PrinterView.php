@@ -77,7 +77,9 @@ class PrinterView {
         </div>
     <?php  
     }
-       
+    
+    
+          
     /**
      * Funzione che stampa secondo i canoni bootstrap una textarea
      * @param type $nameField
@@ -103,6 +105,17 @@ class PrinterView {
         </div>
     <?php      
         
+    }
+    
+    protected function printDisabledTextAreaFormField($nameField, $label, $value){
+    ?>
+        <div class="form-group">
+            <label class="control-label col-sm-2" for="<?php echo $nameField ?>" ><?php echo $label ?></label>
+            <div class="col-sm-10">    
+                <textarea class="form-control" id="<?php echo $nameField ?>" name="<?php echo $nameField ?>" value="" disabled ><?php echo $value ?></textarea>           
+            </div>
+        </div>
+    <?php       
     }
     
     protected function printNumberFormField($nameField, $label, $required=false, $value=null){

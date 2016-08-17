@@ -208,5 +208,19 @@ class IscrizioneRinnovoDAO {
             return false;
         }
     }
+    
+    /**
+     * Ottengo gli id degli ultimi 5 associati
+     * @return boolean
+     */
+    public function getLast5IdAssociati(){
+        try{
+            $query = "SELECT DISTINCT id_associato FROM ".$this->table." ORDER BY data_iscrizione DESC, numero_tessera DESC LIMIT 5";
+            return $this->wpdb->get_col($query); 
+        } catch (Exception $ex) {
+            _e($ex);
+            return false;
+        }
+    }
 
 }

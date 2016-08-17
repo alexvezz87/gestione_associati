@@ -89,4 +89,14 @@ function getUtentiWpSelectValues(){
 }
 
 
+function getValueTipoSocio($tipo){
+    switch($tipo){
+        case 1 : return 'Sostenitore';
+        case 2 : return 'Ordinario';
+        case 3 : return 'VIP';
+        case 4 : return 'Onorario';
+    }
+}
+
+
 ?>

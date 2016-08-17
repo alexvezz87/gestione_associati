@@ -180,6 +180,7 @@ class AssociatoView extends PrinterView {
             'VV' => 'Vibo Valentia',
             'VI' => 'Vicenza',
             'VT' => 'Viterbo',
+            'EE' => 'Estero',
         );
         
         $this->controller = new AssociatoController();
@@ -310,6 +311,52 @@ class AssociatoView extends PrinterView {
         }
     }
     
+    protected function printDettaglioIscrizionePubblico($array){
+        $countRinnovo = 0;
+        foreach($array as $item){
+                      
+            $ir = new IscrizioneRinnovo();
+            $ir = $item;
+            
+            echo '<form class="form-horizontal" role="form" action="'.curPageURL().'" name="form-associato-iscrizione-rinnovo" method="POST" >';
+            
+            
+            $testoModulo = "";
+            $anno = "";
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                echo '<h4>Iscrizione</h4>';
+                $data = explode('-', $ir->getDataIscrizione());
+                $anno = $data[0];
+                $testoModulo = "Documento: Iscrizione ".$anno;
+                        
+            }
+            else{ 
+                $countRinnovo++;
+                echo '<h4>Rinnovo '.$countRinnovo.'</h4>';
+                $data = explode('-', $ir->getDataRinnovo());
+                $anno = $data[0];
+                $testoModulo = "Documento: Rinnovo ".$anno;
+            }
+            parent::printDisabledTextFormField($this->form['numTessera'],  $this->label['numTessera'], $ir->getNumeroTessera());
+            //parent::printNumberFormField($this->form['numTessera'], $this->label['numTessera'], true, $ir->getNumeroTessera());
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                
+                parent::printDisabledTextFormField($this->form['dataIscrizione'], $this->label['dataIscrizione'], getStringData($ir->getDataIscrizione()));
+            }
+            else{                
+                parent::printDisabledTextFormField($this->form['dataRinnovo'], $this->label['dataRinnovo'], getStringData($ir->getDataRinnovo()));
+            } 
+            
+            parent::printDisabledTextFormField($this->form['tipoSocio'], $this->label['tipoSocio'], getValueTipoSocio($ir->getTipoSocio()));
+            parent::printImageLinkDocument($this->form['modulo'], $this->label['modulo'], false, $ir->getModulo(), $testoModulo);
+            parent::printDisabledTextAreaFormField($this->form['note'], $this->label['note'], $ir->getNote());
+          
+            echo '</form>';
+            
+            echo '<hr>';  
+        }
+    }
+    
     /**
      * Funzione che stampa a video il form di add associato
      */
@@ -405,6 +452,61 @@ class AssociatoView extends PrinterView {
         else{
             echo '<p>Associato non trovato :( </p>';
         }
+    }
+    
+    /**
+     * Funzione che stampa i dati associativi pubblici di un utente
+     * @param type $idUtenteWp
+     * @return type
+     */
+    public function printIlMioProfilo($idUtenteWp){
+        
+        $a = new Associato();
+        $a = $this->controller->getAssociatoByIdUtenteWp($idUtenteWp);
+        
+        if($a == null){
+            parent::printErrorBoxMessage('La tua utenza non corrisponde a nessun associato.');
+            return;
+        }
+        
+        //stampo i campi utente
+    ?>
+        <h3>Associato: <?php echo $a->getCognome().' '.$a->getNome() ?></h3>
+        <div class="col-sm-6">
+            <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-dettagli" method="POST" >
+                <?php parent::printHiddenFormField('associato-id', $a->getID()); ?>
+                <?php parent::printHiddenFormField($this->form['utenteWP'], $a->getIdUtenteWP()) ?>
+                <?php parent::printTextFormField($this->form['nome'], $this->label['nome'], true, $a->getNome()) ?>
+                <?php parent::printTextFormField($this->form['cognome'], $this->label['cognome'], true, $a->getCognome()) ?>
+                <?php
+                    $sesso = array('m' => 'Maschio', 'f' => 'Femmina');
+                    parent::printRadioFormField($this->form['sesso'], $this->label['sesso'], $sesso, true, $a->getSesso());                    
+                ?>
+                <?php parent::printTextFormField($this->form['luogoNascita'], $this->label['luogoNascita'], true, $a->getLuogoNascita()) ?>
+                <?php parent::printDateBirthdayFormField($this->form['dataNascita'], $this->label['dataNascita'], true, $a->getDataNascita()) ?>
+                <?php parent::printTextFormField($this->form['telefono'], $this->label['telefono'], false, $a->getTelefono()) ?>
+                <?php parent::printEmailFormField($this->form['email'], $this->label['email'], false, $a->getEmail()) ?>
+               
+                <div>
+                    <?php parent::printUpdateDettaglio('associato') ?>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-6">
+            <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-indirizzo" method="POST" >    
+                <?php $this->printDettaglioIndirizzo($a->getIndirizzo()); ?>
+                <div>
+                    <?php parent::printUpdateDettaglio('associato-indirizzo') ?>
+                </div>
+            </form>
+        </div>
+        <div class="clear"></div>
+        <hr>
+        <div class="col-sm-6">
+             <?php $this->printDettaglioIscrizionePubblico($a->getIscrizioneRinnovo()) ?>  
+        </div>
+    <?php       
+        
     }
     
     /**
@@ -591,6 +693,71 @@ class AssociatoView extends PrinterView {
             }
         }
         
+    }
+    
+    
+    public function listnerDettaglioAssociatoPubblico(){
+        //1. update dettagli associato
+        if(isset($_POST['update-associato'])){     
+            
+            $associato = $this->checkAssociatoFields();
+            //print_r($associato);
+            if($associato == null){
+                //se ci sono stati errori concludo l'operazione  
+                parent::printErrorBoxMessage('Associato non aggiornato!');
+                return;
+            }
+            $associato->setID($_POST['associato-id']);
+            
+            if($this->controller->updateAssociatoDettagli($associato) == false){
+                parent::printErrorBoxMessage('Associato non aggiornato!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Associato aggiornato con successo!');
+                unset($_POST);
+                
+                //invio email di avvertimento 
+                $to = 'amministrazione@quartaera.it';
+                $subject = "Avviso di aggiornamento dettagli associato";
+                $message = "L'associato ".$associato->getNome().' '.$associato->getCognome().', ha modificato i dati relativi al dettaglio associato';
+                add_filter('wp_mail_content_type',create_function('', 'return "text/html"; '));
+                //wp_mail($to, $subject, $message, $headers = '');
+                
+                return;
+            }
+        }
+        
+        //2. update indirizzo
+        if(isset($_POST['update-associato-indirizzo'])){
+            $indirizzo = $this->checkIndirizzoFields();            
+            if($indirizzo == null){
+                //se ci sono stati errori concludo l'operazione
+                parent::printErrorBoxMessage('Indirizzo Associato non aggiornato!');
+                return;
+            }
+            $indirizzo->setIdAssociato($_POST['associato-id']);
+            
+            if($this->controller->updateAssociatoIndirizzo($indirizzo) == false){
+                parent::printErrorBoxMessage('Indirizzo Associato non aggiornato!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Indirizzo Associato aggiornato con successo!');
+                unset($_POST);
+                
+                //invio email di avvertimento 
+                $to = 'amministrazione@quartaera.it';
+                $subject = "Avviso di aggiornamento dettagli indirizzo associato";
+                $message = "L'associato ".$associato->getNome().' '.$associato->getCognome().', ha modificato i dati relativi al suo indirizzo';
+                add_filter('wp_mail_content_type',create_function('', 'return "text/html"; '));
+                //wp_mail($to, $subject, $message, $headers = '');
+                
+                return;
+            }
+        }
     }
     
     /**
@@ -826,9 +993,7 @@ class AssociatoView extends PrinterView {
     }
     
     
-    public function printTableAssociati(){
-        $associati = $this->controller->getAssociatiList();
-      
+    public function printTableAssociati($associati){   
         
         $header = array(
             $this->label['numTessera'],
@@ -860,13 +1025,13 @@ class AssociatoView extends PrinterView {
             
             $ir = new IscrizioneRinnovo();
             
-            $array = $a->getIscrizioneRinnovo();
+            $arrayIR = $a->getIscrizioneRinnovo();
             $ultimaData = "";
             $countRinnovi = 0;
             $numTessera = "";
             $tipoSocio = "";
             $ultimoRinnovo = "nessuno";
-            foreach($array as $item2){
+            foreach($arrayIR as $item2){
                 $temp = new IscrizioneRinnovo();
                 $temp = $item2;
                 if($temp->getDataIscrizione() != '0000-00-00 00:00:00'){
@@ -938,13 +1103,77 @@ class AssociatoView extends PrinterView {
             $html.="</tr>"; 
         }
         
-        return $html;
+        return $html;        
+    }
+    
+    /** STATISTICHE **/
+    
+    public function printStatisticheColumns($statistiche){
+        //$idDiv, $titolo, $array
         
+    ?>
+        <script type="text/javascript">
+
+            window.onload = function () {
+                
+            <?php
+                foreach($statistiche as $s){
+                    $this->printVarCanvas($s);
+                }
+            ?>      
+            }
+            </script>
+            
+            <?php foreach($statistiche as $s){
+                                
+                echo '<div class="col-xs-12 col-sm-6" style="margin-bottom:20px">';
+                echo ' <div id="'.$s['id'].'" style="height:300px; widht:90%"></div>';
+                if(isset($s['note'])){
+                    echo '<p style="text-align:center; font-size:18px"><strong>'.$s['note'].'</strong></p>';
+                }
+                echo '</div>';
+             } ?>
+    <?php    
     }
     
     
-    
-    
-    
-    
+    protected function printVarCanvas($s){
+        
+        $idDiv = $s['id'];
+        $titolo = $s['titolo'];
+        $array = $s['dati'];
+        $type = $s['type'];        
+        
+    ?>
+            var <?php echo $idDiv ?> = new CanvasJS.Chart("<?php echo $idDiv ?>", {
+                    title:{
+                            text: "<?php echo $titolo ?>"              
+                    },
+                    data: [              
+                    {
+                            // Change type to "doughnut", "line", "splineArea", etc.
+                            type: "<?php echo $type ?>",
+                            <?php
+                                if(count($array) > 0){
+                                    echo 'dataPoints: [';
+                                    $i=1;
+                                    foreach ($array as $key => $value) {
+                                        if($i == count($array)){
+                                            echo '{ label: "'.$key.'", y: '.$value.' }';
+                                        }
+                                        else{
+                                            echo '{ label: "'.$key.'", y: '.$value.' }, ';
+                                        }                                                
+                                        $i++;                                                        
+                                    }
+                                    echo ']';
+                                }
+                            ?>
+                    }
+                    ]
+            });
+            <?php echo $idDiv ?>.render(); <?php echo $idDiv ?> = {};
+    <?php
+    }
+        
 }

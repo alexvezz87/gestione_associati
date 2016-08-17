@@ -84,13 +84,13 @@ class AssociatoController {
     }
     
     /**
-     * La funzione restituisce un 
+     * La funzione restituisce un associato passato l'id utente wordpress
      * @param type $idUtenteWp
      * @return type
      */
     public function getAssociatoByIdUtenteWp($idUtenteWp){
         $idAssociato = $this->aDAO->getIdAssociato($idUtenteWp);
-        return $this->aDAO->getAssociato($idAssociato);
+        return $this->getAssociatoByIdAssociato($idAssociato);
     }
     
     /**
@@ -100,6 +100,22 @@ class AssociatoController {
     public function getAssociatiList(){
         //ottengo un array di ID di associati
         $ids = $this->irDAO->getIdAssociati();
+        
+        
+        $associati = array();
+        if(count($ids) > 0){
+            foreach($ids as $id){
+                $associato = $this->getAssociatoByIdAssociato($id);               
+                array_push($associati, $associato);
+            }
+        }
+        
+        return $associati;
+    }
+    
+    public function getLast5Associati(){
+        //ottengo un array di ID di associati
+        $ids = $this->irDAO->getLast5IdAssociati();
         
         
         $associati = array();
@@ -247,4 +263,166 @@ class AssociatoController {
     }
     
     
+    
+    /*** STATISTICHE ***/
+    
+    public function getAssociatiAttivi(){
+        //ottengo tutti gli associati
+        $associati = $this->getAssociatiList();
+                
+        $attivi = array();
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            $irs = $a->getIscrizioneRinnovo();
+            $ultimaData = "";
+            foreach($irs as $item){
+                $ir = new IscrizioneRinnovo();
+                $ir = $item;
+                if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                    $ultimaData = $ir->getDataIscrizione();
+                }
+                else{
+                    $ultimaData = $ir->getDataRinnovo();
+                }
+            }
+            
+            if(isAssociatoScaduto($ultimaData)){
+                
+            }
+            else{
+                array_push($attivi, $associato);
+            }
+        }
+        
+        return $attivi;
+    }
+    
+    public function getStatusAssociati(){
+        //ottengo tutti gli associati
+        $associati = $this->getAssociatiList();
+        $countAttivi = 0;
+        $countScaduti = 0;
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            $irs = $a->getIscrizioneRinnovo();
+            $ultimaData = "";
+            foreach($irs as $item){
+                $ir = new IscrizioneRinnovo();
+                $ir = $item;
+                if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                    $ultimaData = $ir->getDataIscrizione();
+                }
+                else{
+                    $ultimaData = $ir->getDataRinnovo();
+                }
+            }
+            
+            if(isAssociatoScaduto($ultimaData)){
+                $countScaduti++;
+            }
+            else{
+                $countAttivi++;
+            }
+        }
+        
+        $result['Attivi'] = $countAttivi;
+        $result['Scaduti'] = $countScaduti;
+        
+        return $result;
+    }
+    
+    
+    public function getSessoAssociati(){
+        $associati = $this->getAssociatiAttivi();
+        $countM = 0;
+        $countF = 0;
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            if($a->getSesso() == 'm'){
+                $countM++;
+            }
+            else{
+                $countF++;
+            }
+        }
+        
+        $result['Uomini'] = $countM;
+        $result['Donne'] = $countF;
+        
+        return $result;
+    }
+    
+    public function getEtaAssociati($sex=null){
+        $associati = $this->getAssociatiAttivi();
+        $annoCorrente = date('Y');
+        $total = array();
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            if($sex != null){
+                if($a->getSesso() == $sex){
+                    $temp = explode('-', $a->getDataNascita());
+                    $eta = intval($annoCorrente) - intval($temp[0]);
+                    array_push($total, $eta);
+                }
+            }
+            else{
+            
+                $temp = explode('-', $a->getDataNascita());
+                $eta = intval($annoCorrente) - intval($temp[0]);
+
+                array_push($total, $eta);
+            }
+        }
+        
+        $media = 0;
+        for($i=0; $i < count($total); $i++){
+            $media += $total[$i];
+        }
+        
+        sort($total);
+        
+        $media = $media / count($total);       
+        
+        $result['dati'] = array_count_values($total);
+        $result['media'] = round($media,2);
+        
+        return $result;
+    }
+    
+    
+    public function getTipoAssociato(){
+         //ottengo tutti gli associati
+        $associati = $this->getAssociatiAttivi(); 
+        $result = array();
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            $irs = $a->getIscrizioneRinnovo();
+            $tipoSocio = "";
+            foreach($irs as $item){
+                $ir = new IscrizioneRinnovo();
+                $ir = $item;
+                $tipoSocio = getValueTipoSocio($ir->getTipoSocio());
+            }
+            
+            array_push($result, $tipoSocio);
+            
+        }
+        
+        //sort($result);        
+        return array_count_values($result);
+    }
 }

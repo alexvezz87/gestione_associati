@@ -12,3 +12,7 @@ and open the template in the editor.
     max-width:40px;
     max-height: 40px;
 }
+
+canvas.canvasjs-chart-canvas{
+    margin-right:10px;
+}

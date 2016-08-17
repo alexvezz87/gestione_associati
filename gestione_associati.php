@@ -36,7 +36,7 @@ function install_DB(){
 //rimuovo il db quando disattivo il plugin
 register_deactivation_hook( __FILE__, 'remove_DB');
 function remove_DB(){
-    drop_tabelle_associati();
+    //drop_tabelle_associati();
 }
 
 
@@ -46,7 +46,10 @@ add_action( 'admin_enqueue_scripts', 'register_admin_style' );
 
 function register_ga_style(){
     wp_register_style('ga_style_css', plugins_url('css/style.css', __FILE__));
+    wp_register_style('bootstrap-style', plugins_url('css/bootstrap.min.css', __FILE__) );
+    
     wp_enqueue_style('ga_style_css');
+    wp_enqueue_style('bootstrap-style');
 }
 
 function register_admin_style() {
@@ -73,9 +76,11 @@ function register_js_script(){
 function register_admin_js_script(){
     wp_register_script('bootstrap-js', plugins_url('js/bootstrap.min.js', __FILE__), array('jquery'), '1.0', false);   
     wp_register_script('file-input-js', plugins_url('js/fileinput.min.js', __FILE__), array('jquery'), '1.0', false); 
+    wp_register_script('canvas-admin-js', plugins_url('js/jquery.canvasjs.min.js', __FILE__), array('jquery'), '1.0', false); 
     
     wp_enqueue_script('bootstrap-js');   
-    wp_enqueue_script('file-input-js');  
+    wp_enqueue_script('file-input-js'); 
+    wp_enqueue_script('canvas-admin-js');
 }
 
 add_action( 'admin_enqueue_scripts', 'register_admin_js_script' );
@@ -85,6 +90,7 @@ add_action( 'admin_enqueue_scripts', 'register_admin_js_script' );
 //Aggiungo il menu di Plugin
 function add_admin_ga_menu(){
     add_menu_page('Associati', 'Associati', 'edit_plugins', 'gestione_associati', 'add_page_gestione_associati', plugins_url('images/ico_plugin.png', __FILE__), 9 );
+    add_submenu_page('gestione_associati', 'Statistiche', 'Statistiche', 'edit_plugins', 'statistiche', 'add_page_statistiche');
     add_submenu_page('gestione_associati', 'Aggiungi Associato', 'Aggiungi Associato', 'edit_plugins', 'add_associato', 'add_page_add_associato');
     
     add_submenu_page('', 'Dettaglio Associato',  'Dettaglio Associato', 'edit_plugins', 'dettaglio_associato', 'add_pagina_dettaglio');
@@ -103,8 +109,39 @@ function add_pagina_dettaglio(){
     include 'pages/admin/dettaglio_associato.php';
 }
 
+function add_page_statistiche(){
+    include 'pages/admin/statistiche.php';
+}
 
 
 //registro il menu
 add_action('admin_menu', 'add_admin_ga_menu');
+
+
+//aggiungo gli shortcode
+add_shortcode('goToProfile', 'go_to_profile');
+
+function go_to_profile(){
+    if(is_user_logged_in ()){  
+        echo '<p><a href="'.home_url().'/il-mio-profilo">Visualizza il mio profilo associativo</a>';
+    }    
+}
+
+add_shortcode('ilMioProfilo', 'add_page_il_mio_profilo');
+
+function add_page_il_mio_profilo(){
+    if(is_user_logged_in ()){  
+        include 'pages/public/il_mio_profilo.php';
+    }  
+    else{
+        global $wp_query;
+        $wp_query->set_404();
+        status_header( 404 );
+        get_template_part( 404 ); exit();
+    }
+}
+
+
+
+
 ?>
