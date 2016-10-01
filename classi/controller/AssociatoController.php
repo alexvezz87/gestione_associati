@@ -9,11 +9,13 @@ class AssociatoController {
     private $aDAO;
     private $iDAO;
     private $irDAO;
+    private $lDAO;
     
     function __construct() {
         $this->aDAO = new AssociatoDAO();
         $this->iDAO = new IndirizzoDAO();
         $this->irDAO = new IscrizioneRinnovoDAO();        
+        $this->lDAO = new LocatorDAO();
     }
 
     /**
@@ -266,6 +268,10 @@ class AssociatoController {
     
     /*** STATISTICHE ***/
     
+    /**
+     * La funzione restituisce un array di soli associati attivi
+     * @return array
+     */
     public function getAssociatiAttivi(){
         //ottengo tutti gli associati
         $associati = $this->getAssociatiList();
@@ -299,6 +305,10 @@ class AssociatoController {
         return $attivi;
     }
     
+    /**
+     * La funzione restituisce le informazioni relative allo stato degli associati (attivi e scaduti)
+     * @return int
+     */
     public function getStatusAssociati(){
         //ottengo tutti gli associati
         $associati = $this->getAssociatiList();
@@ -337,6 +347,10 @@ class AssociatoController {
     }
     
     
+    /**
+     * La funzione restituisce informazioni riguardo al numero di uomini e donne tra gli associati
+     * @return int
+     */
     public function getSessoAssociati(){
         $associati = $this->getAssociatiAttivi();
         $countM = 0;
@@ -360,6 +374,12 @@ class AssociatoController {
         return $result;
     }
     
+    /**
+     * La funzione restituisce informazioni riguardo all'età degli associati
+     * con un eventuale parametro si può sapere l'età di uomini e donne
+     * @param type $sex
+     * @return type
+     */
     public function getEtaAssociati($sex=null){
         $associati = $this->getAssociatiAttivi();
         $annoCorrente = date('Y');
@@ -398,9 +418,12 @@ class AssociatoController {
         $result['media'] = round($media,2);
         
         return $result;
-    }
+    }    
     
-    
+    /**
+     * La funzione restituisce informazioni riguardo alla tessera dell'associato (sostenitore, ordinario, VIP, onorario)
+     * @return type
+     */
     public function getTipoAssociato(){
          //ottengo tutti gli associati
         $associati = $this->getAssociatiAttivi(); 
@@ -425,4 +448,143 @@ class AssociatoController {
         //sort($result);        
         return array_count_values($result);
     }
+    
+    /**
+     * La funzione restituisce la regione di provenienza dalla sigla della provincia
+     * @param type $sigla
+     * @return type
+     */
+    protected function getRegioneBySiglaProv($sigla){
+        $codRegione = $this->lDAO->getCodRegioneBySiglaProv($sigla);
+        return $this->lDAO->getNomeRegioneByCodRegione($codRegione);
+    }
+    
+    public function getProvenienzaAssociati(){
+        $associati = $this->getAssociatiAttivi();
+        $arrayRegioni = array();
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            $indirizzi = $a->getIndirizzo();
+            $siglaProv = "";
+            foreach($indirizzi as $indirizzo){
+                $i = new Indirizzo();
+                $i = $indirizzo;
+                
+                $siglaProv = $i->getProv();
+            }
+            
+            if($siglaProv != 'EE'){
+                array_push($arrayRegioni, $this->getRegioneBySiglaProv($siglaProv));
+            }
+            else{
+                array_push($arrayRegioni, 'ESTERO');
+            }
+        }
+        
+        
+        sort($arrayRegioni);
+        $arrayRegioni = array_count_values($arrayRegioni);
+        arsort($arrayRegioni);
+        
+        return $arrayRegioni;
+    }
+    
+    /**
+     * La funzione restituisce un array composto da un nome e il relativo cap.
+     * @return array
+     */
+    public function getCapAssociati(){
+        $associati = $this->getAssociatiAttivi();
+        $result = array();
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            $indirizzi = $a->getIndirizzo();
+            $cap = array();
+            
+            foreach($indirizzi as $indirizzo){
+                $i = new Indirizzo();
+                $i = $indirizzo;
+                
+                $cap['addr'] =  str_replace("'", "\'", $i->getIndirizzo().' '.$i->getCivico().', '.$i->getCitta());
+                $cap['cap'] = $i->getCap();
+                $cap['prov'] = str_replace("'", "\'", $this->lDAO->getNomeProvinciaBySigla($i->getProv()));
+            }
+            
+            if($cap['cap'] != 'xxx'){
+                $cap['nome'] = str_replace("'", "\'", $a->getNome().' '.$a->getCognome());
+                array_push($result, $cap);
+            }
+        }
+        
+        return $result;
+    }
+    
+    public function getEmailAssociati(){
+        $associati = $this->getAssociatiAttivi();
+        $emails = array();
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            if($a->getEmail() != 'xxx@xxx.xx'){
+                array_push($emails, $a->getEmail().', '.$a->getNome().' '.$a->getCognome());
+            }
+        }
+        
+        return $emails;
+    }
+    
+    public function getProvenienzaAssociatiRegioni(){
+        $associati = $this->getAssociatiAttivi();
+        $regioni = array();        
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            $indirizzi = $a->getIndirizzo();
+            $siglaProv = "";
+            foreach($indirizzi as $indirizzo){
+                $i = new Indirizzo();
+                $i = $indirizzo;
+                
+                $siglaProv = $i->getProv();
+            }
+            
+            $locator = array();            
+            $nomeRegione = $this->getRegioneBySiglaProv($siglaProv);
+            $locator[$nomeRegione] = $this->lDAO->getNomeProvinciaBySigla($siglaProv);
+            array_push($regioni, $locator);            
+        }        
+        
+        return $regioni;
+        
+    }
+    
+    public function getProvenienzaRegione($nomeRegione){
+        
+        $array = $this->getProvenienzaAssociatiRegioni();
+        $regione = array();
+        $regione[$nomeRegione] = array();
+        
+        foreach($array as $item){
+            foreach($item as $k => $v){
+                if($k == $nomeRegione){
+                    array_push($regione[$nomeRegione], $v);
+                }
+            }
+        }
+        sort($regione[$nomeRegione]);
+        
+        $regione[$nomeRegione] = array_count_values($regione[$nomeRegione]);
+        
+        return $regione;
+    }
+    
+    
+    
 }

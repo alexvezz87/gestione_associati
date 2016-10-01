@@ -16,3 +16,7 @@ and open the template in the editor.
 canvas.canvasjs-chart-canvas{
     margin-right:10px;
 }
+
+#wpadminbar>#wp-toolbar>#wp-admin-bar-top-secondary>#wp-admin-bar-search #adminbarsearch input.adminbar-input{
+    margin-right:25px !important;
+}

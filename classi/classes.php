@@ -13,6 +13,7 @@ require_once 'model/IscrizioneRinnovo.php';
 require_once 'DAO/AssociatoDAO.php';
 require_once 'DAO/IndirizzoDAO.php';
 require_once 'DAO/IscrizioneRinnovoDAO.php';
+require_once 'DAO/LocatorDAO.php';
 
 //CONTROLLER
 require_once 'controller/AssociatoController.php';

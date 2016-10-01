@@ -1089,14 +1089,17 @@ class AssociatoView extends PrinterView {
             $html.='<td>'.parent::printTextField(null, $ultimoRinnovo).'</td>';
             
             $scaduto = "";
-            if(isAssociatoScaduto($ultimaData)){
+            $status = getStatusAssociato($ultimaData);
+            if($status == 'ATTIVO'){
+                $scaduto = '<strong style="color:green">ATTIVO</span>';
+            }
+            else if($status == 'SCADUTO'){
                 $scaduto = '<strong style="color:red">SCADUTO</span>';
             }
             else{
-                $scaduto = '<strong style="color:green">ATTIVO</span>';
+                $scaduto = '<strong style="color:#FFA500">IN SCADENZA</span>';
             }
-            
-            
+                        
             $html.='<td>'.parent::printTextField(null, $scaduto ).'</td>';
             //azioni
             $html.='<td><a href="'.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'">Visualizza dettagli</a></td>';
@@ -1174,6 +1177,141 @@ class AssociatoView extends PrinterView {
             });
             <?php echo $idDiv ?>.render(); <?php echo $idDiv ?> = {};
     <?php
+    }
+    
+    public function printAssociatiEmail(){
+        $emails = $this->controller->getEmailAssociati();
+        
+        foreach($emails as $e){
+            echo $e.'<br>';
+        }
+    }
+    
+    public function printAssociatiMaps(){
+        //ottengo i cap degli associati
+        $caps = $this->controller->getCapAssociati();
+        //print_r($caps);
+    ?>
+        <script
+            src="https://maps.googleapis.com/maps/api/js?callback=preInit&key=AIzaSyAHWTiM4LHqYwrpDRCYVhKu_wTAvJa5uPo" async defer>
+        </script>
+        
+        <div id="map_canvas" style="width:650px; height:700px; border: 2px solid #3872ac;"></div>
+         
+       <script type="text/javascript">
+            var locations = [
+        <?php
+            if(count($caps) > 0 ){
+                $count = 0;
+                foreach($caps as $cap){
+                    if($count == count($caps)-1){
+                        echo "['".$cap['nome']."', '".$cap['addr'].", ".$cap['cap'].", ".$cap['prov']."']";
+                    }
+                    else{
+                        echo "['".$cap['nome']."', '".$cap['addr'].", ".$cap['cap'].", ".$cap['prov']."'],";
+                    }                    
+                    $count++;
+                }
+            }
+        ?>
+            ];
+            
+            var geocoder;
+            var map;
+            var bounds;
+           
+            function preInit(){
+                bounds = new google.maps.LatLngBounds();
+                google.maps.event.addDomListener(window, "load", initialize);
+            }
+            
+            function initialize() {
+                
+                
+                
+                map = new google.maps.Map(
+                document.getElementById("map_canvas"), {
+                    center: new google.maps.LatLng(42.2053153, 12.1936114),
+                    zoom: 6,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
+                geocoder = new google.maps.Geocoder();
+
+                for (i = 0; i < locations.length; i++) {
+
+
+                    geocodeAddress(locations, i);
+                }
+            }
+            
+            
+            
+            function geocodeAddress(locations, i) {
+                var title = locations[i][0];
+                var address = locations[i][1];                
+                geocoder.geocode({
+                    'address': locations[i][1]
+                },
+
+                function (results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        var marker = new google.maps.Marker({
+                            icon: 'http://maps.google.com/mapfiles/ms/icons/blue.png',
+                            map: map,
+                            position: results[0].geometry.location,
+                            title: title,
+                            animation: google.maps.Animation.DROP,
+                            address: address
+                        });
+                        infoWindow(marker, map, title, address);
+                        bounds.extend(marker.getPosition());
+                        map.fitBounds(bounds);
+                    } else {
+                        // === if we were sending the requests to fast, try this one again and increase the delay
+                        if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
+                            setTimeout(function() {
+                                geocodeAddress(locations, i);
+                            }, 50);
+                        }   
+                        
+                        //alert("geocode of " + address + " failed:" + status);
+                    }
+                });
+                
+            }
+            
+            function infoWindow(marker, map, title, address) {
+                google.maps.event.addListener(marker, 'click', function () {
+                    var html = "<div><h3>" + title + "</h3><p>" + address + "<br></div></p></div>";
+                    iw = new google.maps.InfoWindow({
+                        content: html,
+                        maxWidth: 350
+                    });
+                    iw.open(map, marker);
+                });
+            }
+
+            function createMarker(results) {
+                var marker = new google.maps.Marker({
+                    icon: 'http://maps.google.com/mapfiles/ms/icons/blue.png',
+                    map: map,
+                    position: results[0].geometry.location,
+                    title: title,
+                    animation: google.maps.Animation.DROP,
+                    address: address
+                });
+                bounds.extend(marker.getPosition());
+                map.fitBounds(bounds);
+                infoWindow(marker, map, title, address);
+                return marker;
+            }
+            
+        </script> 
+   
+        
+        
+    <?php
+        
     }
         
 }

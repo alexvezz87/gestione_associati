@@ -61,9 +61,44 @@ $controller = new AssociatoController();
     $s6['type'] = 'area';
     array_push($s, $s6);
 
+    $s7 = array();
+    $s7['id'] = 'provenienzaAssociati';
+    $s7['titolo'] = 'Provenienza';
+    $s7['dati'] = $controller->getProvenienzaAssociati();
+    $s7['type'] = 'column';
+    array_push($s, $s7);
+    
+    $array = array();
+    $regioni = $controller->getProvenienzaAssociati();
+    foreach($regioni as $k => $v){
+       $regione = $controller->getProvenienzaRegione($k);
+       
+       foreach($regione as $k => $v){
+           if($k != 'ESTERO'){
+            $countAssociati = 0;
+            foreach ($v as $item){
+                $countAssociati+=$item;
+            }
+            $sR = array();
+            $sR['id'] = 'provenienza'.str_replace('-', '', str_replace(' ', '', $k));
+            $sR['titolo'] = $k;
+            $sR['dati'] = $v;
+            $sR['note'] = 'Totale associati: '.$countAssociati;
+            $sR['type'] = 'pie';
+          
+           array_push($s, $sR);
+           }
+       }
+    }
+    
     $view->printStatisticheColumns($s);
     
 ?>
 <div class="clear"></div>
+<?php 
+
+    $view->printAssociatiMaps();
+  
+?>
 
 

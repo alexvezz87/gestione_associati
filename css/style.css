@@ -32,3 +32,7 @@ body[data-fancy-form-rcs="1"] [type="radio"]:not(:checked), body[data-fancy-form
     padding: 0px !important;
     padding-left: 10px !important;
 }
+
+#wpadminbar>#wp-toolbar>#wp-admin-bar-top-secondary>#wp-admin-bar-search #adminbarsearch input.adminbar-input{
+    margin-right:25px !important;
+}

@@ -72,6 +72,23 @@ function isAssociatoScaduto($data){
     return true;
 }
 
+function getStatusAssociato($data){    
+    //calcolo il tempo 
+    $oggi = time();
+    //Giorni da sottrarre
+    $giorni = 365*24*60*60;
+    $giorniAvviso = (365-15)*24*60*60;
+    $datascadenza = strtotime($data) + $giorni;  
+    $dataAvviso = strtotime($data) + $giorniAvviso;  
+    if($datascadenza > $oggi){
+        if($dataAvviso <= $oggi){
+            return 'IN SCADENZA';
+        }
+        return 'ATTIVO';
+    }
+    return 'SCADUTO';
+}
+
 
 function getUtentiWpSelectValues(){
     
