@@ -20,3 +20,32 @@ canvas.canvasjs-chart-canvas{
 #wpadminbar>#wp-toolbar>#wp-admin-bar-top-secondary>#wp-admin-bar-search #adminbarsearch input.adminbar-input{
     margin-right:25px !important;
 }
+
+button.in-scadenza, button.scaduta {
+    margin-right: 5px;
+}
+
+.loader-container{
+    width:100%;
+    height: 100vh;
+    background: rgba(255,255,255, 0.7);
+    position: fixed;
+    z-index:999999999999999999;
+    top:0;
+    left:0;
+    display: none;
+}
+
+.loader{
+    background:url('../images/loader.gif') center center no-repeat;
+    background-size: contain !important;
+    
+    width:128px;
+    height: 128px;
+    position:fixed;
+    top:50%;
+    margin-top:-64px;
+    left:50%;
+    margin-left: -64px;
+    z-index: 9999999999999999999;
+}

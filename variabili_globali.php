@@ -51,7 +51,7 @@ global $FORM_NUM_TESSERA, $FORM_DATA_ISCRIZIONE, $FORM_DATA_RINNOVO, $FORM_TIPO_
 global $LABEL_NUM_TESSERA, $LABEL_DATA_ISCRIZIONE, $LABEL_DATA_RINNOVO, $LABEL_TIPO_SOCIO, $LABEL_MODULO, $LABEL_NOTE;
 
 $FORM_NUM_TESSERA = 'associato-numero-tessera';
-$LABEL_NUM_TESSERA = 'Numero tessera';
+$LABEL_NUM_TESSERA = 'Tessera';
 $FORM_DATA_ISCRIZIONE = 'associato-data-iscrizione';
 $LABEL_DATA_ISCRIZIONE = 'Data iscrizione';
 $FORM_DATA_RINNOVO = 'associato-data-rinnovo';

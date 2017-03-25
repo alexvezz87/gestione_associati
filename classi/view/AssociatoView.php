@@ -469,9 +469,42 @@ class AssociatoView extends PrinterView {
             return;
         }
         
-        //stampo i campi utente
+        //stampo i campi utente        
+        $arrayIR = $a->getIscrizioneRinnovo();
+        $ultimaData = "";
+        foreach($arrayIR as $item2){
+            $temp = new IscrizioneRinnovo();
+            $temp = $item2;
+            if($temp->getDataIscrizione() != '0000-00-00 00:00:00'){
+                $ir = $temp;
+                $ultimaData = $temp->getDataIscrizione();               
+            }
+            else{                
+                $ultimaData = $temp->getDataRinnovo();               
+            }
+        }
+        
+        $status = getStatusAssociato($ultimaData);
+        
+        $htmlStatus = 'STATO: ';
+        if($status == 'ATTIVO'){
+            $htmlStatus .= '<span style="color:green">'.$status.'</span>';
+        }
+        else{
+            if($status == 'IN SCADENZA'){
+                $htmlStatus .= '<span style="color:#FFA500">'.$status.'</span>';
+            }
+            else if($status == 'SCADUTO'){
+                $htmlStatus .= '<span style="color:red">'.$status.'</span>';
+            }
+            
+            $htmlStatus.='<br><a href="https://quartaera.it/rinnovo/">clicca qui per rinnovare!</a>';
+        }
+        
     ?>
-        <h3>Associato: <?php echo $a->getCognome().' '.$a->getNome() ?></h3>
+        <h3 style="float:right"><?php echo $htmlStatus ?></h3>
+        <h3 style="float:left;">Associato: <?php echo $a->getCognome().' '.$a->getNome()?></h3>
+        <div class="clear"></div>
         <div class="col-sm-6">
             <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-dettagli" method="POST" >
                 <?php parent::printHiddenFormField('associato-id', $a->getID()); ?>
@@ -1031,6 +1064,8 @@ class AssociatoView extends PrinterView {
             $numTessera = "";
             $tipoSocio = "";
             $ultimoRinnovo = "nessuno";
+            $mailInScadenza = "";
+            $mailScaduta = "";
             foreach($arrayIR as $item2){
                 $temp = new IscrizioneRinnovo();
                 $temp = $item2;
@@ -1046,6 +1081,8 @@ class AssociatoView extends PrinterView {
                     $tipoSocio = $temp->getTipoSocio();
                     $ultimoRinnovo = getStringData($temp->getDataRinnovo());
                 }
+                $mailInScadenza = $temp->getMailScadenza();
+                $mailScaduta = $temp->getMailScaduta();
             }
            
             
@@ -1102,7 +1139,35 @@ class AssociatoView extends PrinterView {
                         
             $html.='<td>'.parent::printTextField(null, $scaduto ).'</td>';
             //azioni
-            $html.='<td><a href="'.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'">Visualizza dettagli</a></td>';
+            $html.='<td>';
+            //invio mail
+            
+            $mode = "";
+            $bottone = "";
+            if($status == 'IN SCADENZA'){
+                $mode = 1;
+                if($mailInScadenza == 0){
+                    $bottone = '<button class="in-scadenza" data-id="'.$a->getID().'" >Invia Email</button>';
+                }
+                else{
+                    $bottone = '';
+                }
+            }
+            else if($status == 'SCADUTO'){
+                $mode = 2;
+                if($mailScaduta == 0){
+                    $bottone = '<button class="scaduta" data-id="'.$a->getID().'" >Invia Email</button>';
+                }
+                else{
+                    $bottone = '';
+                }
+            }
+            
+            $html.= $bottone;
+            //dettagli
+            $html.='<button onclick="location.href=\''.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'\'">Dettagli</button>';
+            //$html.='<a href="'.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'">Visualizza dettagli</a>';
+            $html.='</td>';
             $html.="</tr>"; 
         }
         

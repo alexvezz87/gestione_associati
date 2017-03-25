@@ -29,6 +29,16 @@ function getTime($time){
 }
 
 
+function getGiornoMese($time){
+    //viene passata una data nella forma aaaa-mmm-dd hh:mm:ss (es. 2015-09-13 16:30:40)
+    //devo restituire gg mm
+    $temp = explode(' ', $time);
+    $time1 = explode('-', $temp[0]);
+    $time2 = explode(':', $temp[1]);
+
+    return $time1[2].' '.getMese($time1[1]);
+}
+
 function getStringData($time){
     $temp = explode(' ', $time);
     $time1 = explode('-', $temp[0]);
@@ -72,6 +82,11 @@ function isAssociatoScaduto($data){
     return true;
 }
 
+/**
+ * La funzione restitusce una stringa che indica lo stato dell'assocciato, passata una data come parametro in ingresso!
+ * @param type $data
+ * @return string
+ */
 function getStatusAssociato($data){    
     //calcolo il tempo 
     $oggi = time();
@@ -113,6 +128,25 @@ function getValueTipoSocio($tipo){
         case 3 : return 'VIP';
         case 4 : return 'Onorario';
     }
+}
+
+
+//CHIAMATE AJAX
+add_action( 'wp_ajax_nopriv_invia_mail', 'invia_mail' );
+add_action( 'wp_ajax_invia_mail', 'invia_mail' );
+function invia_mail(){
+    $result = false;
+    
+    $controller = new AssociatoController();
+    $a = $controller->getAssociatoByIdAssociato($_POST['id']);
+    
+    if($controller->inviaMail($_POST['mode'], $a)){       
+        $result = true;
+    }
+    
+    echo json_encode($result);
+    die();
+    
 }
 
 

@@ -77,10 +77,12 @@ function register_admin_js_script(){
     wp_register_script('bootstrap-js', plugins_url('js/bootstrap.min.js', __FILE__), array('jquery'), '1.0', false);   
     wp_register_script('file-input-js', plugins_url('js/fileinput.min.js', __FILE__), array('jquery'), '1.0', false); 
     wp_register_script('canvas-admin-js', plugins_url('js/jquery.canvasjs.min.js', __FILE__), array('jquery'), '1.0', false); 
+    wp_register_script('ga-admin-js', plugins_url('js/admin_script.js', __FILE__), array('jquery'), '1.0', false); 
     
     wp_enqueue_script('bootstrap-js');   
     wp_enqueue_script('file-input-js'); 
     wp_enqueue_script('canvas-admin-js');
+    wp_enqueue_script('ga-admin-js');
 }
 
 add_action( 'admin_enqueue_scripts', 'register_admin_js_script' );

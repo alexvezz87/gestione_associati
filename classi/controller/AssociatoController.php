@@ -264,7 +264,65 @@ class AssociatoController {
         return $ultimaTessera+1;
     }
     
+    /**
+     * La funzione ricevuto in ingresso l'array di iscrizione/rinnovo restituisce l'ultima data 
+     * in cui l'iscrizione o il rinnovo è stato effettuato
+     * @param type $irs
+     * @return type
+     */
+    public function getUltimaIscrizione($irs){
+        $ultimaData = "";
+        foreach($irs as $item){
+            $ir = new IscrizioneRinnovo();
+            $ir = $item;
+            if($ir->getDataIscrizione() != '0000-00-00 00:00:00'){
+                $ultimaData = $ir->getDataIscrizione();
+            }
+            else{
+                $ultimaData = $ir->getDataRinnovo();
+            }
+        }
+        return $ultimaData;
+    }
     
+    public function getAssociatiInScadenza(){
+        //ottengo tutti gli associati
+        $associati = $this->getAssociatiList();    
+        $inScadenza = array();
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;
+            
+            //ottengo l'ultima data in cui è stata rinnovata l'iscrizione
+            $ultimaData = $this->getUltimaIscrizione($a->getIscrizioneRinnovo());
+            
+            if(getStatusAssociato($ultimaData) == 'IN SCADENZA'){
+                array_push($inScadenza, $associato);
+            }
+        }
+        
+        return $inScadenza;
+    }
+    
+    public function getAssociatiScaduti(){
+        //ottengo tutti gli associati
+        $associati = $this->getAssociatiList();    
+        $scaduti = array();
+        
+        foreach($associati as $associato){
+            $a = new Associato();
+            $a = $associato;            
+            
+            $ultimaData = $this->getUltimaIscrizione($a->getIscrizioneRinnovo());
+            
+            if(getStatusAssociato($ultimaData) == 'SCADUTO'){
+                array_push($scaduti, $associato);
+            }
+        }
+        
+        return $scaduti;
+    }
     
     /*** STATISTICHE ***/
     
@@ -531,7 +589,7 @@ class AssociatoController {
             $a = $associato;
             
             if($a->getEmail() != 'xxx@xxx.xx'){
-                array_push($emails, $a->getEmail().', '.$a->getNome().' '.$a->getCognome());
+                array_push($emails, $a->getEmail().';'.$a->getNome().' '.$a->getCognome());
             }
         }
         
@@ -585,6 +643,135 @@ class AssociatoController {
         return $regione;
     }
     
-    
+    /**
+     * La funzione invia la mail di iscrizione in scadenza o iscrizione scaduta di un determinato associato a seconda dei parametri inseriti
+     * @param type $mode
+     * @param Associato $a
+     * @return boolean
+     */
+    public function inviaMail($mode, Associato $a){
+        //mode = 1 --> scadenza
+        //mode = 2 --> scaduto
+           
+        //preparo il messaggio
+        $title = "";
+        $message = "";
+        
+        //ottengo la data della scadenza dell'ultima iscrizione    
+        $irs = $a->getIscrizioneRinnovo();
+        
+        $data = getGiornoMese($this->getUltimaIscrizione($irs));
+        
+        //ottengo l'id dell'ultima iscrizione/rinnovo
+        $lastID = 0;
+        foreach($irs as $item){
+            $ir = new IscrizioneRinnovo();
+            $ir = $item;
+            $lastID = $ir->getID();
+        }
+        
+        if($mode == 1){
+            $title = "Iscrizione in scadenza!";
+            $message = '<p>Ciao '.$a->getNome().',<br>
+                        sembra ieri, ma è quasi passato un anno dalla tua iscrizione a La
+                        Quarta Era. Ti vogliamo ricordare che il prossimo '.$data.', la tua
+                        iscrizione scadrà. Se hai dei dubbi sul rinnovo, dalla data di
+                        scadenza hai a disposizione un mese per pensarci.';
+        }
+        else if($mode == 2){
+            $title = "Iscrizione scaduta!";
+            $message = '<p>Ciao '.$a->getNome().',<br>
+                        ti vogliamo informare che la tua iscrizione a La Quarta Era è
+                        scaduta il giorno <b>'.$data.'</b>. <br>
+                        Se hai dei dubbi sul rinnovo, dalla data di scadenza hai a
+                        disposizione <b>30 giorni</b> prima che la tua iscrizione decada
+                        definitivamente.';            
+        }
+        
+        $message.= 'Per qualsiasi
+                    domanda ti rimandiamo alla pagina delle domande frequenti sul
+                    nostro sito (<a class="moz-txt-link-freetext" href="https://quartaera.it/associazione/domande-frequenti/">https://quartaera.it/associazione/domande-frequenti/</a>),
+                    oppure non esitare a contattarci.<br>
+                    Se invece vuoi rinnovare per un altro anno, hai a disposizione due
+                    strade.<br>
+                    La prima consiste nel venirci a trovare in fiera e rinnovare
+                    l\'iscrizione rivolgendoti ad un membro del consiglio direttivo. <br>
+                    La seconda strada invece, è quella del rinnovo online. Abbiamo
+                    sviluppato un sistema facile e veloce per rinnovare l\'iscrizione
+                    in pochi click. Trovi tutto l\'occorrente a questa pagina: <br>
+                    </p>
+                    <p align="center"> <font size="+2"><a class="moz-txt-link-freetext" href="https://quartaera.it/rinnovo/">https://quartaera.it/rinnovo/</a></font><br>
+                    </p>
+                    <p>Compila il form e invia la richiesta. Successivamente il sistema
+                    di pagamento di paypal ti permetterà di concludere l\'operazione. <br>
+                    Se ci sono domande o dubbi, non esitare a chiedere. Siamo a tua
+                    completa disposizione.<br>
+                    <br>
+                    Sperando in un riscontro positivo, ti auguriamo buona giornata.<br>
+                    <br>
+                    Amministrazione - La Quarta Era</p>';
+        
+        $firma = '<table border="0" width="100%">
+                    <tr><td align="center">
+                    <table border="0">
+                     <tr> 
+                      <td>
+                        <img width="210" height="200" src="https://quartaera.it/wp-content/uploads/2016/02/LOGO-QUARTA-ERA.jpg">
+                      </td>
+                      <td valign="top">
+                        <div style="margin-left:25px">
+                         <span style="font-size:25px; font-weight:bold">La Quarta Era</span><br>
+                         <strong>Associazione di Rievocazione Tolkieniana</strong><br>
+                         SEDE<br>
+                         Via Francesco Lolli, 9<br>
+                         42122 - Reggio Emilia<br>
+                         C.F. 91173910356<br>
+                         web. <a href="http://www.quartaera.it">www.quartaera.it</a><br>
+                         mail. <a href="mailto:info@quartaera.it">info@quartaera.it</a>
+                        </div>
+                      </td>
+                     </tr>
+                    </table>
+                    </td></tr>
+                    </table>';
+        
+        
+        $message.='<br><br><br>'.$firma;
+        
+        //invio la mail
+        try{
+            //aggiungo il filtro per l'html sulla mail
+            add_filter('wp_mail_content_type',create_function('', 'return "text/html"; '));
+            //invio la mail
+            //test
+            print_r($message);
+            if(wp_mail($a->getEmail(), $title, $message)){
+                
+                //ufficiale
+                //wp_mail($a->getEmail(), $title, $message);
+
+                //se la mail viene inviata correttamente, devo aggiornare l'iscrizione/rinnovo
+                //ottengo l'oggetto in questione
+                $ir = $this->irDAO->getIscrizioneRinnovoByID($lastID);
+                
+                $update = false;
+                if($mode == 1){                    
+                    $update = $this->irDAO->UpdateMailScadenza($ir);                   
+                }
+                else if($mode == 2){                    
+                    $update = $this->irDAO->updateMailScaduta($ir);                    
+                }
+                //aggiorno 
+                if($update == true){
+                    return true;
+                }           
+            }
+            return false;
+            
+        } catch (Exception $ex) {
+            _e($ex);
+            return false;
+        }
+    }
     
 }

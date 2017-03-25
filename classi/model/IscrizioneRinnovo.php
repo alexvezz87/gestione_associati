@@ -17,6 +17,8 @@ class IscrizioneRinnovo {
     private $dataIscrizione;
     private $modulo;
     private $note;
+    private $mailScadenza;
+    private $mailScaduta;
     
     function __construct() {
         
@@ -87,7 +89,19 @@ class IscrizioneRinnovo {
         $this->note = $note;
     }
 
+    function getMailScadenza() {
+        return $this->mailScadenza;
+    }
 
+    function getMailScaduta() {
+        return $this->mailScaduta;
+    }
 
+    function setMailScadenza($mailScadenza) {
+        $this->mailScadenza = $mailScadenza;
+    }
 
+    function setMailScaduta($mailScaduto) {
+        $this->mailScaduta = $mailScaduto;
+    }
 }
