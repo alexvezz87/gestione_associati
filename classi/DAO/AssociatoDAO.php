@@ -33,9 +33,10 @@ class AssociatoDAO {
                         'luogo_nascita' => $a->getLuogoNascita(),
                         'data_nascita' =>  $a->getDataNascita(),
                         'telefono' => $a->getTelefono(),
-                        'email' => $a->getEmail()
+                        'email' => $a->getEmail(),
+                        'ibernato' => 0
                     ),
-                    array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                    array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d')
                 );
             return $this->wpdb->insert_id;            
         } catch (Exception $ex) {
@@ -64,6 +65,7 @@ class AssociatoDAO {
                 $a->setTelefono($temp->telefono);
                 $a->setEmail($temp->email);
                 $a->setIdUtenteWP($temp->id_utente_wp);
+                $a->setIbernato($temp->ibernato);
                 
                 return $a;
             }
@@ -141,10 +143,11 @@ class AssociatoDAO {
                         'data_nascita' => $timestamp,
                         'telefono' => $a->getTelefono(),
                         'email' => $a->getEmail(),
-                        'id_utente_wp' => $a->getIdUtenteWP()
+                        'id_utente_wp' => $a->getIdUtenteWP(),
+                        'ibernato' => $a->getIbernato()
                     ),
                     array('ID' => $a->getID()),
-                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d'),
+                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d'),
                     array('%d')
                 );
             
@@ -154,6 +157,7 @@ class AssociatoDAO {
             return false;
         }
     }
+    
     
     /**
      * La funzione restituisce un array di id_utente_wp

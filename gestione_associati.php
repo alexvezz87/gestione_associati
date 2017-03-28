@@ -9,7 +9,7 @@
 Plugin Name: Gestione Associati
 Plugin URI: 
 Description: Plugin per la gestione degli iscritti a l'associazione La Quarta Era
-Version: 1.0
+Version: 1.5
 Author: Alex Vezzelli - Alex Soluzioni Web
 Author URI: http://www.alexsoluzioniweb.it/
 License: GPLv2 or later
@@ -92,6 +92,7 @@ add_action( 'admin_enqueue_scripts', 'register_admin_js_script' );
 //Aggiungo il menu di Plugin
 function add_admin_ga_menu(){
     add_menu_page('Associati', 'Associati', 'edit_plugins', 'gestione_associati', 'add_page_gestione_associati', plugins_url('images/ico_plugin.png', __FILE__), 9 );
+    add_submenu_page('gestione_associati', 'Ibernati', 'Ibernati', 'edit_plugins', 'ibernati', 'add_page_ibernati');
     add_submenu_page('gestione_associati', 'Statistiche', 'Statistiche', 'edit_plugins', 'statistiche', 'add_page_statistiche');
     add_submenu_page('gestione_associati', 'Aggiungi Associato', 'Aggiungi Associato', 'edit_plugins', 'add_associato', 'add_page_add_associato');
     
@@ -115,6 +116,9 @@ function add_page_statistiche(){
     include 'pages/admin/statistiche.php';
 }
 
+function add_page_ibernati(){
+    include 'pages/admin/ibernati.php';
+}
 
 //registro il menu
 add_action('admin_menu', 'add_admin_ga_menu');

@@ -436,7 +436,12 @@ class AssociatoView extends PrinterView {
             <hr>
             <form class="form-horizontal" role="form" action="<?php echo curPageURL() ?>" name="form-associato-elimina" method="POST" >
                 <?php parent::printHiddenFormField('associato-id', $a->getID()) ?>
+                
+                <?php if($a->getIbernato() == 0) { ?>    
                 <?php parent::printDeleteDettaglio('associato') ?>
+                <?php }else if($a->getIbernato() == 1){ ?>
+                <?php parent::printAttivaDettaglio('associato') ?>
+                <?php } ?>
             </form>
             
         </div>
@@ -693,10 +698,39 @@ class AssociatoView extends PrinterView {
             
         }
         
-        //4. delete associato
+        //4. iberna associato
         if(isset($_POST['delete-associato'])){
-            
-        }        
+            //Iberno l'associato --> vado a modificare un flag all'interno del suo record nel database            
+            $associato = $this->controller->getAssociatoByIdAssociato($_POST['associato-id']);
+            $associato->setIbernato(1);
+             if($this->controller->updateAssociatoDettagli($associato) == false){
+                parent::printErrorBoxMessage('Associato non aggiornato!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Associato IBERNATO successo!');
+                unset($_POST);
+                return;
+            }
+        } 
+        
+        //4b. attiva associato
+        if(isset($_POST['attiva-associato'])){
+            //Attivo l'associato --> vado a modificare il flag all'interno del suo record nel database
+            $associato = $this->controller->getAssociatoByIdAssociato($_POST['associato-id']);
+            $associato->setIbernato(0);
+             if($this->controller->updateAssociatoDettagli($associato) == false){
+                parent::printErrorBoxMessage('Associato non aggiornato!');
+                return;
+            }
+            else{
+                //tutto ok
+                parent::printOkBoxMessage('Associato ATTIVATO con successo!');
+                unset($_POST);
+                return;
+            }
+        }
         
         //5. salva nuovo rinnovo
         if(isset($_POST['rinnova-associato'])){
@@ -1136,6 +1170,10 @@ class AssociatoView extends PrinterView {
             else{
                 $scaduto = '<strong style="color:#FFA500">IN SCADENZA</span>';
             }
+            
+            if($a->getIbernato() == 1){
+                $scaduto = '<strong style="color:#999">IBERNATO</span>';
+            }
                         
             $html.='<td>'.parent::printTextField(null, $scaduto ).'</td>';
             //azioni
@@ -1161,12 +1199,13 @@ class AssociatoView extends PrinterView {
                 else{
                     $bottone = '';
                 }
-            }
-            
+            }            
             $html.= $bottone;
             //dettagli
             $html.='<button onclick="location.href=\''.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'\'">Dettagli</button>';
-            //$html.='<a href="'.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'">Visualizza dettagli</a>';
+            //$html.='<a href="'.get_admin_url().'admin.php?page=dettaglio_associato&id='.$a->getID().'">Visualizza dettagli</a>';            
+            
+            
             $html.='</td>';
             $html.="</tr>"; 
         }

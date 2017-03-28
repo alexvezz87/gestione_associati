@@ -17,6 +17,7 @@ class Associato {
     private $telefono;
     private $email;
     private $iscrizioneRinnovo;
+    private $ibernato;
     
     
     function __construct() {
@@ -111,6 +112,12 @@ class Associato {
         $this->iscrizioneRinnovo = $iscrizioneRinnovo;
     }
 
+    function getIbernato() {
+        return $this->ibernato;
+    }
 
+    function setIbernato($ibernato) {
+        $this->ibernato = $ibernato;
+    }
 
 }

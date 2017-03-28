@@ -75,7 +75,7 @@ class AssociatoController {
     public function getAssociatoByIdAssociato($idAssociato){
         $associato = new Associato();
         $associato = $this->aDAO->getAssociato($idAssociato);   
-        if($associato != null){
+        if($associato != null){           
             //ottengo l'indirizzo
             $parameters['id_associato'] = $idAssociato;
             $associato->setIndirizzo($this->iDAO->getIndirizzo($parameters));
@@ -115,16 +115,63 @@ class AssociatoController {
         return $associati;
     }
     
-    public function getLast5Associati(){
+    /**
+     * La funzione restituisce un array di associati non ibernati
+     * @return array
+     */
+    public function getAssociatiNonIbernati(){
         //ottengo un array di ID di associati
-        $ids = $this->irDAO->getLast5IdAssociati();
+        $ids = $this->irDAO->getIdAssociati();
         
         
         $associati = array();
         if(count($ids) > 0){
             foreach($ids as $id){
-                $associato = $this->getAssociatoByIdAssociato($id);               
-                array_push($associati, $associato);
+                $associato = $this->getAssociatoByIdAssociato($id); 
+                if($associato->getIbernato() == 0){
+                    array_push($associati, $associato);
+                }
+            }
+        }
+        
+        return $associati;
+    }
+    
+    /**
+     * La funzione restituisce un array di associati NON ibernati
+     * @return array
+     */
+    public function getAssociatiIbernati(){
+        //ottengo un array di ID di associati
+        $ids = $this->irDAO->getIdAssociati();
+        $associati = array();
+        if(count($ids) > 0){
+            foreach($ids as $id){
+                $associato = $this->getAssociatoByIdAssociato($id); 
+                if($associato->getIbernato() == 1){
+                    array_push($associati, $associato);
+                }
+            }
+        }
+        
+        return $associati;
+    }
+    
+    
+    /**
+     * La funzione restituisce un array di associati ibernati
+     * @return array
+     */
+    public function getLast5Associati(){
+        //ottengo un array di ID di associati
+        $ids = $this->irDAO->getLast5IdAssociati();  
+        $associati = array();
+        if(count($ids) > 0){
+            foreach($ids as $id){
+                $associato = $this->getAssociatoByIdAssociato($id);    
+                if($associato->getIbernato() == 0){
+                    array_push($associati, $associato);
+                }
             }
         }
         
@@ -287,7 +334,7 @@ class AssociatoController {
     
     public function getAssociatiInScadenza(){
         //ottengo tutti gli associati
-        $associati = $this->getAssociatiList();    
+        $associati = $this->getAssociatiNonIbernati();    
         $inScadenza = array();
         
         foreach($associati as $associato){
@@ -297,8 +344,8 @@ class AssociatoController {
             //ottengo l'ultima data in cui è stata rinnovata l'iscrizione
             $ultimaData = $this->getUltimaIscrizione($a->getIscrizioneRinnovo());
             
-            if(getStatusAssociato($ultimaData) == 'IN SCADENZA'){
-                array_push($inScadenza, $associato);
+            if(getStatusAssociato($ultimaData) == 'IN SCADENZA'){                
+                array_push($inScadenza, $a);               
             }
         }
         
@@ -307,18 +354,18 @@ class AssociatoController {
     
     public function getAssociatiScaduti(){
         //ottengo tutti gli associati
-        $associati = $this->getAssociatiList();    
+        $associati = $this->getAssociatiNonIbernati();   
         $scaduti = array();
         
         foreach($associati as $associato){
             $a = new Associato();
-            $a = $associato;            
-            
+            $a = $associato;
             $ultimaData = $this->getUltimaIscrizione($a->getIscrizioneRinnovo());
-            
-            if(getStatusAssociato($ultimaData) == 'SCADUTO'){
-                array_push($scaduti, $associato);
+
+            if(getStatusAssociato($ultimaData) == 'SCADUTO'){                                  
+                array_push($scaduti, $a);                
             }
+            
         }
         
         return $scaduti;
@@ -332,12 +379,12 @@ class AssociatoController {
      */
     public function getAssociatiAttivi(){
         //ottengo tutti gli associati
-        $associati = $this->getAssociatiList();
-                
+        $associati = $this->getAssociatiNonIbernati();
+             
         $attivi = array();
         foreach($associati as $associato){
             $a = new Associato();
-            $a = $associato;
+            $a = $associato;            
             
             $irs = $a->getIscrizioneRinnovo();
             $ultimaData = "";
@@ -351,13 +398,14 @@ class AssociatoController {
                     $ultimaData = $ir->getDataRinnovo();
                 }
             }
-            
+
             if(isAssociatoScaduto($ultimaData)){
-                
+
             }
             else{
                 array_push($attivi, $associato);
             }
+            
         }
         
         return $attivi;
@@ -369,7 +417,7 @@ class AssociatoController {
      */
     public function getStatusAssociati(){
         //ottengo tutti gli associati
-        $associati = $this->getAssociatiList();
+        $associati = $this->getAssociatiNonIbernati();
         $countAttivi = 0;
         $countScaduti = 0;
         

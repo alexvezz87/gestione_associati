@@ -508,7 +508,13 @@ class PrinterView {
     
     protected function printDeleteDettaglio($nameField){
     ?>        
-        <input name="delete-<?php echo $nameField ?>" type="submit" class="btn btn-danger" value="Cancella Associato" />
+        <input name="delete-<?php echo $nameField ?>" type="submit" class="btn btn-danger" value="Iberna Associato" />
+    <?php    
+    }
+    
+    protected function printAttivaDettaglio($nameField){
+        ?>        
+        <input name="attiva-<?php echo $nameField ?>" type="submit" class="btn btn-success" value="Attiva Associato" />
     <?php    
     }
     

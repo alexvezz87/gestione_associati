@@ -43,4 +43,4 @@ $emails = $controller->getEmailAssociati();
 <?php } ?>
 
 <h3>Tutti gli associati</h3>
-<?php $view->printTableAssociati($controller->getAssociatiList()) ?>
+<?php $view->printTableAssociati($controller->getAssociatiNonIbernati()) ?>
