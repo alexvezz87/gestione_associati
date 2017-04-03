@@ -792,7 +792,7 @@ class AssociatoController {
             add_filter('wp_mail_content_type',create_function('', 'return "text/html"; '));
             //invio la mail
             //test
-            print_r($message);
+            //print_r($message);
             if(wp_mail($a->getEmail(), $title, $message)){
                 
                 //ufficiale
