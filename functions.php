@@ -101,7 +101,18 @@ function getStatusAssociato($data){
         }
         return 'ATTIVO';
     }
-    return 'SCADUTO';
+    //se arrivo qua è per forza scaduto - conto i giorni dalla scadenza
+    if($datascadenza <= $oggi){
+        $secondiScaduti = $oggi - $datascadenza;
+        if($secondiScaduti > 30*24*60*60){
+            //in questo caso il tempo scaduto supera i 30 giorni
+            //ottengo i giorni arrotondati per difetto
+            $giorni = (($secondiScaduti/60)/60)/24;
+            return 'SCADUTO DA '.(floor($giorni)).' GIORNI';
+        }
+        return 'SCADUTO';
+    }    
+    
 }
 
 

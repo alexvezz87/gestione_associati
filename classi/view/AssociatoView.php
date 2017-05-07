@@ -1164,11 +1164,13 @@ class AssociatoView extends PrinterView {
             if($status == 'ATTIVO'){
                 $scaduto = '<strong style="color:green">ATTIVO</span>';
             }
-            else if($status == 'SCADUTO'){
-                $scaduto = '<strong style="color:red">SCADUTO</span>';
+            else if($status == 'IN SCADENZA'){
+                $scaduto = '<strong style="color:#FFA500">IN SCADENZA</span>';
+                
             }
             else{
-                $scaduto = '<strong style="color:#FFA500">IN SCADENZA</span>';
+                $scaduto = '<strong style="color:red">'.$status.'</span>';
+               // $scaduto = '<strong style="color:red">SCADUTO</span>';
             }
             
             if($a->getIbernato() == 1){

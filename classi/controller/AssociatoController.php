@@ -361,10 +361,16 @@ class AssociatoController {
             $a = new Associato();
             $a = $associato;
             $ultimaData = $this->getUltimaIscrizione($a->getIscrizioneRinnovo());
-
+            
+            if (strpos(getStatusAssociato($ultimaData), 'SCADUTO') !== false) {
+                array_push($scaduti, $a); 
+            }
+            /*
             if(getStatusAssociato($ultimaData) == 'SCADUTO'){                                  
                 array_push($scaduti, $a);                
             }
+            */
+            
             
         }
         
